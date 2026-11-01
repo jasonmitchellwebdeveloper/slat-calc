@@ -66,6 +66,11 @@ export const PRODUCTS = {
 // Shortest first, so the BOM can pick the first length that fits.
 export const POST_PRODUCTS: Product[] = [PRODUCTS.post2400, PRODUCTS.post3000];
 
+export function findProduct(sku: string): Product | undefined {
+  const products: Product[] = Object.values(PRODUCTS);
+  return products.find((p) => p.sku === sku);
+}
+
 export const COLOURS: Colour[] = [
   { id: "satin-black", name: "Satin Black", hex: "#23262a" },
   { id: "charcoal", name: "Charcoal", hex: "#4a4f54" },

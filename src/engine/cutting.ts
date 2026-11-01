@@ -1,6 +1,5 @@
 import type { CutRequest } from "./bom";
-import { PRODUCTS, SAW_KERF_MM } from "./catalogue";
-import type { Product } from "./types";
+import { findProduct, PRODUCTS, SAW_KERF_MM } from "./catalogue";
 
 export interface CutBar {
   cutsMm: number[]; // longest first
@@ -98,8 +97,7 @@ export function optimiseCuts(
 }
 
 function stockLengthFor(sku: string): number {
-  const products: Product[] = Object.values(PRODUCTS);
-  const stockMm = products.find((p) => p.sku === sku)?.stockLengthMm;
+  const stockMm = findProduct(sku)?.stockLengthMm;
   if (stockMm === undefined) {
     throw new RangeError(`SKU ${sku} is not cut from stock`);
   }
