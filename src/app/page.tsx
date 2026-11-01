@@ -1,8 +1,16 @@
+import { Calculator } from "@/components/Calculator";
+import styles from "./page.module.scss";
+
 export default function Home() {
   return (
-    <main>
-      <h1>Slatwise</h1>
-      <p>Slat fence calculator. Specs and prices are illustrative.</p>
-    </main>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <h1>Slatwise</h1>
+        <p>Slat fence calculator. Specs and prices are illustrative.</p>
+      </header>
+      <main className={styles.main}>
+        <Calculator />
+      </main>
+    </div>
   );
 }

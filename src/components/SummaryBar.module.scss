@@ -1,0 +1,48 @@
+@use "../styles/mixins" as *;
+
+.bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--colour-surface);
+  border-top: 1px solid var(--colour-border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-4);
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 0.8125rem;
+  color: var(--colour-muted);
+}
+
+.amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.action {
+  @include tap-target;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius);
+  background: var(--colour-accent);
+  color: var(--colour-on-accent);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
