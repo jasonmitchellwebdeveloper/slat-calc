@@ -1,0 +1,20 @@
+:root {
+  --colour-ink: #1d1f21;
+  --colour-surface: #ffffff;
+  --colour-accent: #0b6e4f;
+  --space-2: 0.5rem;
+  --space-4: 1rem;
+  --radius: 8px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--colour-ink);
+  background: var(--colour-surface);
+}
