@@ -3,6 +3,7 @@ import type { Colour, GapMm, Product } from "./types";
 // Illustrative specs and prices only. Not any supplier's real catalogue.
 
 export const SLAT_FACE_MM = 65;
+export const SLAT_THICKNESS_MM = 16;
 export const POST_WIDTH_MM = 50;
 export const CHANNEL_CLEARANCE_MM = 2; // each side of a slat
 export const GROUND_CLEARANCE_MM = 50;
