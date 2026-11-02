@@ -311,7 +311,7 @@ test.describe("steel panel fence", () => {
     ).toBeChecked();
     await expect(page.getByRole("radio", { name: "Trimline" })).toBeChecked();
     await expect(page.getByRole("radio", { name: "Rapid set" })).toBeChecked();
-    await expect(total(page)).toHaveText(before);
+    await expect.poll(() => total(page).innerText()).toBe(before);
   });
 
   test("still opens a link from before fence types existed", async ({
@@ -358,14 +358,10 @@ test.describe("steel panel fence", () => {
     await expect(
       page.getByRole("radio", { name: "Steel panel" }),
     ).toBeChecked();
-    await tabTo(
-      page,
-      page.getByRole("radio", { name: "1800 mm", exact: true }),
-    );
+    const heights = page.getByRole("group", { name: "Panel height" });
+    await tabTo(page, heights.getByRole("radio", { name: "1800 mm" }));
     await page.keyboard.press("ArrowRight");
-    await expect(
-      page.getByRole("radio", { name: "2100 mm", exact: true }).first(),
-    ).toBeChecked();
+    await expect(heights.getByRole("radio", { name: "2100 mm" })).toBeChecked();
     await tabTo(page, page.locator("#run-1-length"));
     await page.keyboard.type("7500");
     await tabTo(page, requestQuote(page));
