@@ -12,7 +12,7 @@ interface OptionGroupProps<T extends string> {
   name: string;
   options: Option<T>[];
   value: T;
-  columns?: 1 | 2 | "half" | "row";
+  columns?: 1 | 2 | "half" | "lead" | "quarter" | "quarterWide" | "row";
   onChange: (value: T) => void;
 }
 
@@ -20,6 +20,9 @@ const LAYOUT_CLASSES = {
   1: styles.oneColumn,
   2: styles.twoColumns,
   half: styles.half,
+  lead: styles.lead,
+  quarter: styles.quarter,
+  quarterWide: styles.quarterWide,
   row: styles.row,
 };
 
@@ -35,33 +38,35 @@ export function OptionGroup<T extends string>({
   return (
     <fieldset className={styles.group}>
       <legend className={styles.legend}>{legend}</legend>
-      <div className={LAYOUT_CLASSES[columns]}>
-        {options.map((option) => (
-          <label
-            key={option.value}
-            className={
-              option.swatch
-                ? `${styles.option} ${styles.swatchOption}`
-                : styles.option
-            }
-          >
-            <input
-              type="radio"
-              name={name}
-              value={option.value}
-              checked={option.value === value}
-              onChange={() => onChange(option.value)}
-            />
-            {option.swatch && (
-              <span
-                className={styles.swatch}
-                style={{ "--swatch": option.swatch } as CSSProperties}
-                aria-hidden="true"
+      <div className={styles.container}>
+        <div className={LAYOUT_CLASSES[columns]}>
+          {options.map((option) => (
+            <label
+              key={option.value}
+              className={
+                option.swatch
+                  ? `${styles.option} ${styles.swatchOption}`
+                  : styles.option
+              }
+            >
+              <input
+                type="radio"
+                name={name}
+                value={option.value}
+                checked={option.value === value}
+                onChange={() => onChange(option.value)}
               />
-            )}
-            <span>{option.label}</span>
-          </label>
-        ))}
+              {option.swatch && (
+                <span
+                  className={styles.swatch}
+                  style={{ "--swatch": option.swatch } as CSSProperties}
+                  aria-hidden="true"
+                />
+              )}
+              <span>{option.label}</span>
+            </label>
+          ))}
+        </div>
       </div>
     </fieldset>
   );

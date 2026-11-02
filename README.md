@@ -113,7 +113,7 @@ Each panel takes 2 channel posts, 2 rails and 12 screws. Each run takes 2 steel 
 ## Quality
 
 - **432 unit and API tests** (Vitest), with the engine written test-first against hand-worked numbers.
-- **31 browser tests** (Playwright): reference runs for both products, axe across ten page states, keyboard-only quote requests, focus staying clear of the sticky bar, old share links, tampered quotes, and the 3D view's lazy loading, controls and fallbacks.
+- **33 browser tests** (Playwright): reference runs for both products, axe across ten page states, keyboard-only quote requests, focus staying clear of the sticky bar, old share links, tampered quotes, and the 3D view's lazy loading, controls and fallbacks.
 - **CI** runs formatting, lint, types and both test suites on every push.
 - **Lighthouse mobile on production, three runs:** Performance 99 to 100, Accessibility, Best Practices and SEO 100. Largest Contentful Paint 0.8 to 1.4 s, Cumulative Layout Shift 0.
 

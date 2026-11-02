@@ -465,6 +465,49 @@ test.describe("steel panel fence", () => {
     await expectNoAxeViolations(page);
   });
 
+  test("short groups sit on one line when there's room", async ({ page }) => {
+    const rowsOf = (name: string) =>
+      page
+        .getByRole("group", { name, exact: true })
+        .locator("label")
+        .evaluateAll(
+          (labels) =>
+            new Set(labels.map((l) => l.getBoundingClientRect().top)).size,
+        );
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await toPanel(page);
+    expect(await rowsOf("Panel height")).toBe(1);
+    expect(await rowsOf("Sleepers")).toBe(1);
+
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await expect.poll(() => rowsOf("Sleepers")).toBe(2);
+    expect(await rowsOf("Panel height")).toBe(1);
+
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await expect.poll(() => rowsOf("Panel height")).toBe(2);
+  });
+
+  test("no option overflows, at any panel height", async ({ page }) => {
+    for (const width of [320, 360]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto("/");
+      await toPanel(page);
+      const heights = page.getByRole("group", { name: "Panel height" });
+      for (const height of ["1200 mm", "1500 mm", "1800 mm", "2100 mm"]) {
+        await heights.getByRole("radio", { name: height }).check();
+        const overflowing = await page
+          .locator("label:has(input[type=radio])")
+          .evaluateAll((labels) =>
+            labels
+              .filter((l) => l.scrollWidth > l.clientWidth + 1)
+              .map((l) => l.textContent),
+          );
+        expect(overflowing).toEqual([]);
+      }
+    }
+  });
+
   test("size options fill the card in two columns", async ({ page }) => {
     await toPanel(page);
     const group = page.getByRole("group", { name: "Panel height" });
