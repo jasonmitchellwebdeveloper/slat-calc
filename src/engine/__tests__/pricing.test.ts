@@ -9,14 +9,14 @@ import {
   resolvePrice,
   type PriceContext,
 } from "../pricing";
-import type { Design, Product, Run } from "../types";
+import type { SlatDesign, Product, Run } from "../types";
 
 const { slat, channel, post2400, cap, basePlate, gateKit, fixings } = PRODUCTS;
 
 const RUN: Run = { id: "a", lengthMm: 6000, startsAtCorner: false };
 
-function price(ctx: PriceContext, extra: Partial<Design> = {}) {
-  const design: Design = {
+function price(ctx: PriceContext, extra: Partial<SlatDesign> = {}) {
+  const design: SlatDesign = {
     system: "slat",
     targetHeightMm: 1800,
     gapMm: 5,

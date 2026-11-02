@@ -39,10 +39,12 @@ function decodeDesign(encoded: string): Design | null {
     ),
   };
   const result = calculate(design, { tier: "retail" });
+  if (!result.ok) return null;
+  if (design.system === "panel") return design;
   const offered = result.heightOptions.some(
     (o) => o.gapMm === design.gapMm && o.slatCount === design.slatCount,
   );
-  return result.ok && offered ? design : null;
+  return offered ? design : null;
 }
 
 export function readDesignFromSearch(search: string): {

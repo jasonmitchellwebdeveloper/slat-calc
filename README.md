@@ -1,10 +1,10 @@
-# Slatwise: slat fence calculator
+# Slatwise: fence calculator
 
 [![CI](https://github.com/jasonmitchellwebdeveloper/slat-calc/actions/workflows/ci.yml/badge.svg)](https://github.com/jasonmitchellwebdeveloper/slat-calc/actions/workflows/ci.yml)
 
 **Live demo: [slat-calc.vercel.app](https://slat-calc.vercel.app)**
 
-A mobile-first calculator for aluminium slat fencing. Enter a target height and your fence runs, and it returns the closest real builds, a to-scale drawing, an exact bill of materials, an optimised cut list, retail, trade or contract pricing, and a validated quote payload ready to hand to an ERP.
+A mobile-first calculator for two fence types, aluminium slat and Colorbond-style steel panel. Enter your fence runs and it returns a to-scale drawing, an exact bill of materials, a cut list, retail, trade or contract pricing, and a validated quote payload ready to hand to an ERP. Both products run through the same engine pipeline, UI, price lists, quote API and share links.
 
 Specs and prices are illustrative. This is a portfolio project, not affiliated with any supplier.
 
@@ -15,7 +15,9 @@ Specs and prices are illustrative. This is a portfolio project, not affiliated w
 
 ## Features
 
+- **Two products behind one switch:** slat fencing, solved from a target height, and steel panel fencing, built from fixed panel sizes.
 - **Height solver:** turns a target height into the three closest builds that can actually be made from whole slats.
+- **Steel panel rules:** panel heights, sleepers, post lengths, sheet profiles and concrete, with one long or cut panel taking up whatever a run leaves over.
 - **Run builder:** multiple runs, shared corner posts, a gate at the end of a run, and in-ground or base-plate mounting. Enter measurements in millimetres or metres.
 - **Live drawing:** a to-scale SVG elevation, built from the same layout data as the bill of materials so the two can't disagree.
 - **Optional 3D view:** a three.js model of the selected run, derived from the same geometry, that you can rotate by drag or with buttons. It's downloaded only when someone opens it.
@@ -71,7 +73,21 @@ Bay width is floored to whole millimetres so every slat in a run matches. Any le
 
 **Cuts.** First-fit decreasing: sort the cuts longest first, then put each one in the first stock length with room, opening a new length when none has it. Each cut allows 3 mm for the saw. It isn't guaranteed optimal, but it's fast, predictable and close on this kind of repeated-length job.
 
-**Worked example.** 6000 mm run, 1800 mm target, 5 mm gap, in-ground, retail:
+**Steel panels.** A run fills with 2400 mm panels, after 100 mm for its two ends:
+
+```
+usable = run length − 100
+whole  = floor(usable / 2400)
+rest   = usable − whole × 2400
+
+rest = 0      whole standard panels, 3 sheets each
+rest ≤ 780    one panel becomes a long one (3180 mm rail), cut to fit
+otherwise     one extra short panel, cut to fit, sheets = ceil(rest / 800)
+```
+
+Each panel takes 2 channel posts, 2 rails and 12 screws. Each run takes 2 steel end posts, and a gate adds 2 more. Concrete is 1.5 bags per post hole, rounded up. These rules were worked out from a published calculator's output, and the tests check 25 lengths and one gate against what it returned. They reproduce those quantities rather than claiming to be its actual logic.
+
+**Worked example, slat.** 6000 mm run, 1800 mm target, 5 mm gap, in-ground, retail:
 
 | Step          | Result                                                   |
 | ------------- | -------------------------------------------------------- |
@@ -96,8 +112,8 @@ Bay width is floored to whole millimetres so every slat in a run matches. Any le
 
 ## Quality
 
-- **282 unit and API tests** (Vitest), with the engine written test-first against hand-worked numbers.
-- **18 browser tests** (Playwright): the reference run, axe across six page states, a keyboard-only quote request, focus staying clear of the sticky bar, and the 3D view's lazy loading, controls and fallbacks.
+- **396 unit and API tests** (Vitest), with the engine written test-first against hand-worked numbers.
+- **27 browser tests** (Playwright): reference runs for both products, axe across nine page states, keyboard-only quote requests, focus staying clear of the sticky bar, old share links, tampered quotes, and the 3D view's lazy loading, controls and fallbacks.
 - **CI** runs formatting, lint, types and both test suites on every push.
 - **Lighthouse mobile on production, three runs:** Performance 99 to 100, Accessibility, Best Practices and SEO 100. Largest Contentful Paint 0.8 to 1.4 s, Cumulative Layout Shift 0.
 
@@ -112,7 +128,8 @@ This is a demo, and these are the things a production version would need to addr
 - **No accounts.** Anyone can choose the trade or demo account prices. The server checks a quote's prices are right for its price list, but not that the person is entitled to that list. A real integration would take the tier and account from the login session.
 - **Contract prices reach the browser**, because the engine runs there. Real ones would need to stay on the server.
 - **Nothing is stored or sent.** A quote reference is generated and returned, then forgotten.
-- **Level ground and straight runs.** There's no stepping on slopes, and gates only go at the end of a run.
+- **Level ground and straight runs.** There's no stepping on slopes or raked panels, and gates only go at the end of a run.
+- **Steel panels are standard infill only**, with single gates. Lattice-style panels, double gates and extras such as coloured caps are out. Sleeper size, and how a shared corner changes the posts, are assumptions rather than observed figures.
 - **3D shows one run at a time**, because the design doesn't record which way a corner turns. It has no dimensions, which stay on the 2D plan, and a very long run looks small because zooming is off so the page can scroll.
 - **Colour doesn't change SKUs or prices**, which a real catalogue would.
 - **Waste counts offcuts only**, not the metal lost to the saw.
@@ -120,7 +137,8 @@ This is a demo, and these are the things a production version would need to addr
 
 ## What I'd do next
 
-- A Colorbond-style fencing module on the same engine: fixed panel sizes, plinths and stepping on slopes
+- Stepping and raked panels on slopes, for both fence types
+- Double gates and more steel panel styles
 - Live catalogue and price sync
 - Stock availability and freight by postcode
 - Gates anywhere in a run

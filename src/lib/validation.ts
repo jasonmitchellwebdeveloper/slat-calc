@@ -6,6 +6,7 @@ import {
   MIN_RUN_MM,
 } from "@/engine/catalogue";
 import { MIN_FENCE_HEIGHT_MM, solveHeight } from "@/engine/height";
+import { MAX_PANEL_RUN_MM, MIN_PANEL_RUN_MM } from "@/engine/panelCatalogue";
 
 export type Unit = "m" | "mm";
 
@@ -46,6 +47,9 @@ function rangeError(mm: number, min: number, max: number, unit: Unit) {
 
 export const runLengthError: Validate = (mm, unit) =>
   rangeError(mm, MIN_RUN_MM, MAX_RUN_MM, unit);
+
+export const panelRunLengthError: Validate = (mm, unit) =>
+  rangeError(mm, MIN_PANEL_RUN_MM, MAX_PANEL_RUN_MM, unit);
 
 export const gateWidthError: Validate = (mm, unit) =>
   rangeError(mm, MIN_GATE_WIDTH_MM, MAX_GATE_WIDTH_MM, unit);

@@ -1,3 +1,4 @@
+import { ALL_PANEL_PRODUCTS } from "./panelCatalogue";
 import type { Colour, GapMm, Product } from "./types";
 
 // Illustrative specs and prices only. Not any supplier's real catalogue.
@@ -70,7 +71,10 @@ export const PRODUCTS = {
 export const POST_PRODUCTS: Product[] = [PRODUCTS.post2400, PRODUCTS.post3000];
 
 export function findProduct(sku: string): Product | undefined {
-  const products: Product[] = Object.values(PRODUCTS);
+  const products: Product[] = [
+    ...Object.values(PRODUCTS),
+    ...ALL_PANEL_PRODUCTS,
+  ];
   return products.find((p) => p.sku === sku);
 }
 

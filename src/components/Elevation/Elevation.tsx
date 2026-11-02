@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import type { RunLayout } from "@/engine/bom";
+import type { FenceLayout } from "@/engine/calculate";
 import type { Design } from "@/engine/types";
 import { ElevationDrawing } from "../ElevationDrawing/ElevationDrawing";
 import { describeElevation } from "../ElevationDrawing/elevationGeometry";
@@ -10,9 +10,10 @@ import styles from "./Elevation.module.scss";
 
 interface ElevationProps {
   design: Design;
-  layouts: RunLayout[];
+  layouts: FenceLayout[];
   selectedRunId: string | null;
   colourHex: string;
+  frameHex: string;
   stale: boolean;
   onSelectRun: (id: string) => void;
 }
@@ -42,6 +43,7 @@ export function Elevation({
   layouts,
   selectedRunId,
   colourHex,
+  frameHex,
   stale,
   onSelectRun,
 }: ElevationProps) {
@@ -50,6 +52,7 @@ export function Elevation({
     layouts.findIndex((layout) => layout.runId === selectedRunId),
   );
   const layout = layouts[index];
+  const hasCuts = "panels" in layout && layout.panels.some((p) => p.cutDown);
   const [view, setView] = useState<View>("2d");
 
   return (
@@ -88,10 +91,12 @@ export function Elevation({
               layout={layout}
               index={index}
               colourHex={colourHex}
+              frameHex={frameHex}
             />
           </div>
           <p className={styles.note}>
             Drawn to scale from the quote.
+            {hasCuts && " Panels marked cut are trimmed to fit."}
             {layout.sharesCorner &&
               " The hollow post is shared with the previous run."}
           </p>
@@ -103,6 +108,7 @@ export function Elevation({
               design={design}
               layout={layout}
               colourHex={colourHex}
+              frameHex={frameHex}
               label={describeElevation(layout, index)}
             />
           </div>

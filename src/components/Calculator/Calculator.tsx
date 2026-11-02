@@ -10,9 +10,11 @@ import {
 import { calculate } from "@/engine/calculate";
 import { COLOURS } from "@/engine/catalogue";
 import { DEMO_ACCOUNT_CODE, type PriceContext } from "@/engine/pricing";
-import type { Design, Mounting } from "@/engine/types";
+import { PANEL_COLOURS } from "@/engine/panelCatalogue";
+import type { Colour, ConcreteType, Design, Mounting } from "@/engine/types";
 import { designReducer } from "@/lib/designReducer";
 import { designSearch, readDesignFromSearch } from "@/lib/designUrl";
+import { fenceColours } from "@/lib/fenceColours";
 import type { Unit } from "@/lib/validation";
 import { BomTable } from "../BomTable/BomTable";
 import { Button } from "../Button/Button";
@@ -21,6 +23,8 @@ import { CutList } from "../CutList/CutList";
 import { Elevation } from "../Elevation/Elevation";
 import { HeightPicker } from "../HeightPicker/HeightPicker";
 import { OptionGroup, type Option } from "../OptionGroup/OptionGroup";
+import { PanelCutList } from "../PanelCutList/PanelCutList";
+import { PanelPicker } from "../PanelPicker/PanelPicker";
 import { PriceSummary } from "../PriceSummary/PriceSummary";
 import { PrintPlan } from "../PrintPlan/PrintPlan";
 import { QuoteRequest } from "../QuoteRequest/QuoteRequest";
@@ -55,11 +59,24 @@ const PRICE_LIST_NAMES: Record<PriceList, string> = {
   account: `Account ${DEMO_ACCOUNT_CODE}`,
 };
 
-const COLOUR_OPTIONS: Option<string>[] = COLOURS.map((colour) => ({
+const toColourOption = (colour: Colour): Option<string> => ({
   value: colour.id,
   label: colour.name,
   swatch: colour.hex,
-}));
+});
+const COLOUR_OPTIONS = COLOURS.map(toColourOption);
+const PANEL_COLOUR_OPTIONS = PANEL_COLOURS.map(toColourOption);
+
+const SYSTEM_OPTIONS: Option<Design["system"]>[] = [
+  { value: "slat", label: "Aluminium slat" },
+  { value: "panel", label: "Steel panel" },
+];
+
+const CONCRETE_OPTIONS: Option<ConcreteType>[] = [
+  { value: "post-mix", label: "Post mix" },
+  { value: "rapid-set", label: "Rapid set" },
+  { value: "none", label: "Not required" },
+];
 
 const MOUNTING_OPTIONS: Option<Mounting>[] = [
   { value: "in-ground", label: "In-ground" },
@@ -113,7 +130,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
     () => (result.ok ? result : calculate(lastValidDesign, pricing)),
     [result, lastValidDesign, pricing],
   );
-  const colour = COLOURS.find((c) => c.id === lastValidDesign.colour);
+  const colours = fenceColours(lastValidDesign);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
 
   // Only valid designs reach the address bar, so a copied URL always loads.
@@ -146,13 +163,24 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
               design={lastValidDesign}
               layouts={shown.layouts}
               selectedRunId={selectedRunId}
-              colourHex={colour?.hex ?? ""}
+              colourHex={colours.infillHex}
+              frameHex={colours.frameHex}
               stale={!result.ok}
               onSelectRun={setSelectedRunId}
             />
           </section>
         )}
         <div className={`${styles.column} ${styles.form} ${styles.screenOnly}`}>
+          <div className={styles.card}>
+            <OptionGroup
+              legend="Fence type"
+              name="system"
+              columns="row"
+              options={SYSTEM_OPTIONS}
+              value={design.system}
+              onChange={(system) => dispatch({ type: "setSystem", system })}
+            />
+          </div>
           <div className={styles.card}>
             <OptionGroup
               legend="Enter measurements in"
@@ -164,29 +192,58 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
             />
           </div>
           <section className={styles.card} aria-labelledby="step-height">
-            <h2 id="step-height">Height</h2>
-            <HeightPicker
-              design={design}
-              options={result.heightOptions}
-              unit={unit}
-              dispatch={dispatch}
-            />
+            <h2 id="step-height">
+              {design.system === "slat" ? "Height" : "Panels"}
+            </h2>
+            {design.system === "slat" ? (
+              <HeightPicker
+                design={design}
+                options={result.heightOptions}
+                unit={unit}
+                dispatch={dispatch}
+              />
+            ) : (
+              <PanelPicker design={design} dispatch={dispatch} />
+            )}
           </section>
           <section className={styles.card} aria-labelledby="step-colour">
             <h2 id="step-colour">Colour</h2>
-            <OptionGroup
-              legend="Slat and post finish"
-              name="colour"
-              columns={2}
-              options={COLOUR_OPTIONS}
-              value={design.colour}
-              onChange={(colour) => dispatch({ type: "setColour", colour })}
-            />
+            <div className={styles.fields}>
+              <OptionGroup
+                legend={
+                  design.system === "slat"
+                    ? "Slat and post finish"
+                    : "Infill sheets"
+                }
+                name="colour"
+                columns={2}
+                options={
+                  design.system === "slat"
+                    ? COLOUR_OPTIONS
+                    : PANEL_COLOUR_OPTIONS
+                }
+                value={design.colour}
+                onChange={(colour) => dispatch({ type: "setColour", colour })}
+              />
+              {design.system === "panel" && (
+                <OptionGroup
+                  legend="Posts and rails"
+                  name="frame-colour"
+                  columns={2}
+                  options={PANEL_COLOUR_OPTIONS}
+                  value={design.frameColour}
+                  onChange={(colour) =>
+                    dispatch({ type: "setFrameColour", colour })
+                  }
+                />
+              )}
+            </div>
           </section>
           <section className={styles.card} aria-labelledby="step-runs">
             <h2 id="step-runs">Runs</h2>
             <RunBuilder
               runs={design.runs}
+              system={design.system}
               unit={unit}
               dispatch={dispatch}
               onSelectRun={setSelectedRunId}
@@ -194,23 +251,39 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
           </section>
           <section className={styles.card} aria-labelledby="step-mounting">
             <h2 id="step-mounting">Mounting</h2>
-            <OptionGroup
-              legend="How the posts are fixed"
-              name="mounting"
-              columns={2}
-              options={MOUNTING_OPTIONS}
-              value={design.mounting}
-              onChange={(mounting) =>
-                dispatch({ type: "setMounting", mounting })
-              }
-            />
+            <div className={styles.fields}>
+              <OptionGroup
+                legend="How the posts are fixed"
+                name="mounting"
+                columns={2}
+                options={MOUNTING_OPTIONS}
+                value={design.mounting}
+                onChange={(mounting) =>
+                  dispatch({ type: "setMounting", mounting })
+                }
+              />
+              {design.system === "panel" && design.mounting === "in-ground" && (
+                <OptionGroup
+                  legend="Concrete"
+                  name="concrete"
+                  columns="row"
+                  options={CONCRETE_OPTIONS}
+                  value={design.concrete}
+                  onChange={(concrete) =>
+                    dispatch({ type: "setConcrete", concrete })
+                  }
+                />
+              )}
+            </div>
           </section>
         </div>
         {shown.ok && (
           <PrintPlan
             design={lastValidDesign}
             layouts={shown.layouts}
-            colour={colour}
+            finish={colours.finish}
+            infillHex={colours.infillHex}
+            frameHex={colours.frameHex}
             priceListName={PRICE_LIST_NAMES[priceList]}
           />
         )}
@@ -259,9 +332,13 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
                   <PriceSummary priced={shown.priced} />
                   <BomTable
                     lines={shown.priced.lines}
-                    colourName={colour?.name ?? ""}
+                    finish={colours.finish}
                   />
-                  <CutList plans={shown.cutPlans} />
+                  {lastValidDesign.system === "slat" ? (
+                    <CutList plans={shown.cutPlans} />
+                  ) : (
+                    <PanelCutList layouts={shown.layouts} />
+                  )}
                 </div>
               )}
             </div>

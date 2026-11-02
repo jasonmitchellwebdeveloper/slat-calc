@@ -24,10 +24,27 @@
 
 // The outline keeps pale finishes visible against the white card.
 .post {
+  fill: var(--frame-colour);
+  stroke: var(--colour-muted);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.frame {
+  fill: var(--frame-colour);
+}
+
+// The seams show where one sheet meets the next.
+.sheet {
   fill: var(--fence-colour);
   stroke: var(--colour-muted);
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
+}
+
+.cut {
+  fill: var(--colour-accent);
+  font-weight: 600;
 }
 
 .gateLeaf {
@@ -43,7 +60,7 @@
 
 .sharedPost {
   fill: var(--colour-surface);
-  stroke: var(--fence-colour);
+  stroke: var(--frame-colour);
   stroke-width: 12;
 }
 

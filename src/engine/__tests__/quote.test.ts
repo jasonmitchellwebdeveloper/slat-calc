@@ -8,7 +8,7 @@ import {
   verifyQuote,
   type Quote,
 } from "../quote";
-import type { Design } from "../types";
+import type { PanelDesign, Design, SlatDesign } from "../types";
 
 const design: Design = {
   system: "slat",
@@ -154,7 +154,7 @@ describe("verifyQuote", () => {
   });
 
   it("accepts any build the solver can make, not only the closest", () => {
-    const d: Design = { ...design, gapMm: 9, slatCount: 24 };
+    const d: SlatDesign = { ...design, gapMm: 9, slatCount: 24 };
     expect(verifyQuote(quote(d))).toBe(true);
   });
 
@@ -215,5 +215,72 @@ describe("createQuoteRef", () => {
     // 23:30 UTC on the 1st is already the 2nd in Sydney.
     const ref = createQuoteRef(new Date("2026-11-01T23:30:00Z"));
     expect(ref).toMatch(/^Q-20261102-[0-9A-F]{4}$/);
+  });
+});
+
+describe("steel panel quotes", () => {
+  const panel: PanelDesign = {
+    system: "panel",
+    fenceHeightMm: 1800,
+    sleepers: 1,
+    postLengthMm: null,
+    profile: "trimline",
+    colour: "mist-grey",
+    frameColour: "slate-grey",
+    concrete: "rapid-set",
+    mounting: "in-ground",
+    runs: [
+      { id: "run-1", lengthMm: 10000, startsAtCorner: false },
+      {
+        id: "run-2",
+        lengthMm: 4000,
+        startsAtCorner: true,
+        gate: { widthMm: 930 },
+      },
+    ],
+  };
+
+  it("keeps every panel option in the payload", () => {
+    const q = buildQuote(panel, RETAIL, NOW);
+    expect(q.design).toEqual({
+      system: "panel",
+      fenceHeightMm: 1800,
+      sleepers: 1,
+      postLengthMm: null,
+      profile: "trimline",
+      colour: "mist-grey",
+      frameColour: "slate-grey",
+      concrete: "rapid-set",
+      mounting: "in-ground",
+      runs: [
+        { lengthMm: 10000, startsAtCorner: false },
+        { lengthMm: 4000, startsAtCorner: true, gate: { widthMm: 930 } },
+      ],
+    });
+  });
+
+  it("passes the schema and the price check", () => {
+    for (const ctx of [RETAIL, ACCOUNT]) {
+      const q = buildQuote(panel, ctx, NOW);
+      expect(QuoteSchema.safeParse(q).success).toBe(true);
+      expect(verifyQuote(q)).toBe(true);
+    }
+  });
+
+  it("rejects a changed price and a changed option", () => {
+    const cheap = buildQuote(panel, RETAIL, NOW);
+    cheap.totals = { ...cheap.totals, incGstCents: 100 };
+    expect(verifyQuote(cheap)).toBe(false);
+
+    const changed = buildQuote(panel, RETAIL, NOW);
+    if (changed.design.system !== "panel") throw new Error("expected panel");
+    changed.design = { ...changed.design, sleepers: 0 };
+    expect(verifyQuote(changed)).toBe(false);
+  });
+
+  it("rejects a slat colour on a panel fence", () => {
+    const q = buildQuote(panel, RETAIL, NOW);
+    const bad = { ...q, design: { ...q.design, colour: "woodgrain" } };
+    expect(QuoteSchema.safeParse(bad).success).toBe(false);
   });
 });

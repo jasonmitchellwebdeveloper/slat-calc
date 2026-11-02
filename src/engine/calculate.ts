@@ -1,14 +1,21 @@
 import { buildBom, layoutRuns, type Bom, type RunLayout } from "./bom";
 import { planCuts, type SkuCutPlan } from "./cutting";
 import { solveHeight, type HeightOption } from "./height";
+import {
+  buildPanelBom,
+  layoutPanelRuns,
+  type PanelRunLayout,
+} from "./panelBom";
 import { priceBom, type PriceContext, type PricedBom } from "./pricing";
 import type { Design } from "./types";
+
+export type FenceLayout = RunLayout | PanelRunLayout;
 
 export type Calculation =
   | {
       ok: true;
       heightOptions: HeightOption[];
-      layouts: RunLayout[];
+      layouts: FenceLayout[];
       bom: Bom;
       cutPlans: SkuCutPlan[];
       priced: PricedBom;
@@ -17,8 +24,9 @@ export type Calculation =
 
 // The one entry point for the UI. Every number on screen comes from here.
 export function calculate(design: Design, ctx: PriceContext): Calculation {
-  const heightOptions = solveHeight(design.targetHeightMm);
-  if (heightOptions.length === 0) {
+  const heightOptions =
+    design.system === "slat" ? solveHeight(design.targetHeightMm) : [];
+  if (design.system === "slat" && heightOptions.length === 0) {
     return {
       ok: false,
       heightOptions,
@@ -26,8 +34,10 @@ export function calculate(design: Design, ctx: PriceContext): Calculation {
     };
   }
   try {
-    const layouts = layoutRuns(design);
-    const bom = buildBom(design);
+    const layouts =
+      design.system === "slat" ? layoutRuns(design) : layoutPanelRuns(design);
+    const bom =
+      design.system === "slat" ? buildBom(design) : buildPanelBom(design);
     const cutPlans = planCuts(bom.cuts);
     const priced = priceBom(bom, cutPlans, ctx);
     return { ok: true, heightOptions, layouts, bom, cutPlans, priced };

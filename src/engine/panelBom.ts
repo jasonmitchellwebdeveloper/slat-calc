@@ -42,6 +42,7 @@ export interface PanelRunLayout {
   fenceHeightMm: number; // above ground, sleepers included
   sheetHeightMm: number;
   sleeperHeightMm: number;
+  postLengthMm: number;
   gateOpeningMm?: number;
 }
 
@@ -86,7 +87,7 @@ export function recommendedPostLength(design: PanelDesign): number {
 }
 
 // A chosen post can be short, for fixing to a structure, but not under the fence.
-function postLengthFor(design: PanelDesign): number {
+export function postLengthFor(design: PanelDesign): number {
   const { postLengthMm } = design;
   if (postLengthMm === null) return recommendedPostLength(design);
   const fits =
@@ -149,7 +150,7 @@ function layoutPanels(lengthMm: number): PanelBay[] {
 
 export function layoutPanelRuns(design: PanelDesign): PanelRunLayout[] {
   assertValidOptions(design);
-  postLengthFor(design);
+  const postLengthMm = postLengthFor(design);
   const sleeperHeightMm = design.sleepers * SLEEPER_HEIGHT_MM;
 
   return design.runs.map((run, index) => {
@@ -171,6 +172,7 @@ export function layoutPanelRuns(design: PanelDesign): PanelRunLayout[] {
       fenceHeightMm: aboveGroundMm(design),
       sheetHeightMm: design.fenceHeightMm - SHEET_CLEARANCE_MM,
       sleeperHeightMm,
+      postLengthMm,
     };
     if (run.gate) {
       layout.gateOpeningMm = run.gate.widthMm + GATE_ALLOWANCE_MM;

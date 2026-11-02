@@ -6,9 +6,9 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const TITLE = "Slatwise | Slat fence calculator";
+const TITLE = "Slatwise | Fence calculator";
 const DESCRIPTION =
-  "Enter a target height and your fence runs to get a bill of materials, cut list and quote. Specs and prices are illustrative.";
+  "Aluminium slat and steel panel fencing: enter your runs to get a bill of materials, cut list and quote. Specs and prices are illustrative.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://slat-calc.vercel.app"),

@@ -1,7 +1,7 @@
 import type { Dispatch } from "react";
 import { MAX_FENCE_HEIGHT_MM } from "@/engine/catalogue";
 import { MIN_FENCE_HEIGHT_MM, type HeightOption } from "@/engine/height";
-import type { Design } from "@/engine/types";
+import type { SlatDesign } from "@/engine/types";
 import type { DesignAction } from "@/lib/designReducer";
 import { rangeText, targetHeightError, type Unit } from "@/lib/validation";
 import { NumberField } from "../NumberField/NumberField";
@@ -9,7 +9,7 @@ import { OptionGroup } from "../OptionGroup/OptionGroup";
 import styles from "./HeightPicker.module.scss";
 
 interface HeightPickerProps {
-  design: Design;
+  design: SlatDesign;
   options: HeightOption[];
   unit: Unit;
   dispatch: Dispatch<DesignAction>;

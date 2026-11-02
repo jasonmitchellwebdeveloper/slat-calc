@@ -6,10 +6,16 @@ import {
   MIN_GATE_WIDTH_MM,
   MIN_RUN_MM,
 } from "@/engine/catalogue";
-import type { Run } from "@/engine/types";
+import {
+  MAX_PANEL_RUN_MM,
+  MIN_PANEL_RUN_MM,
+  PANEL_GATE_WIDTH_MM,
+} from "@/engine/panelCatalogue";
+import type { Design, Run } from "@/engine/types";
 import type { DesignAction } from "@/lib/designReducer";
 import {
   gateWidthError,
+  panelRunLengthError,
   rangeText,
   runLengthError,
   type Unit,
@@ -19,6 +25,7 @@ import styles from "./RunBuilder.module.scss";
 
 interface RunBuilderProps {
   runs: Run[];
+  system: Design["system"];
   unit: Unit;
   dispatch: Dispatch<DesignAction>;
   onSelectRun: (id: string) => void;
@@ -26,10 +33,12 @@ interface RunBuilderProps {
 
 export function RunBuilder({
   runs,
+  system,
   unit,
   dispatch,
   onSelectRun,
 }: RunBuilderProps) {
+  const isPanel = system === "panel";
   const listRef = useRef<HTMLOListElement>(null);
   const addRef = useRef<HTMLButtonElement>(null);
 
@@ -80,13 +89,13 @@ export function RunBuilder({
                   )}
                 </div>
                 <NumberField
-                  key={`length-${unit}`}
+                  key={`length-${system}-${unit}`}
                   id={`${run.id}-length`}
                   label="Fence length"
-                  hint={`${rangeText(MIN_RUN_MM, MAX_RUN_MM, unit)}, not including any gate`}
+                  hint={`${isPanel ? rangeText(MIN_PANEL_RUN_MM, MAX_PANEL_RUN_MM, unit) : rangeText(MIN_RUN_MM, MAX_RUN_MM, unit)}, not including any gate`}
                   value={run.lengthMm}
                   unit={unit}
-                  validate={runLengthError}
+                  validate={isPanel ? panelRunLengthError : runLengthError}
                   onChange={(mm) =>
                     dispatch({ type: "setRunLength", id: run.id, mm })
                   }
@@ -121,7 +130,12 @@ export function RunBuilder({
                   />
                   Add gate at the end
                 </label>
-                {run.gate && (
+                {run.gate && isPanel && (
+                  <p className={styles.gateNote}>
+                    Single gate, {PANEL_GATE_WIDTH_MM} mm wide.
+                  </p>
+                )}
+                {run.gate && !isPanel && (
                   <NumberField
                     key={`gate-${unit}`}
                     id={`${run.id}-gate`}

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Slatwise: slat fence calculator";
+export const alt = "Slatwise: fence calculator";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -37,7 +37,7 @@ export default function Image() {
       </div>
       <div style={{ fontSize: 88, lineHeight: 1.2 }}>Slatwise</div>
       <div style={{ fontSize: 40, lineHeight: 1.3, color: "#565c62" }}>
-        Slat fence calculator
+        Fence calculator
       </div>
     </div>,
     size,

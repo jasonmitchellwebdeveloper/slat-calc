@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { calculate } from "../calculate";
 import { PRODUCTS } from "../catalogue";
 import { DEMO_ACCOUNT_CODE } from "../pricing";
-import type { Design } from "../types";
+import type { PanelDesign, Design } from "../types";
 
 const design: Design = {
   system: "slat",
@@ -81,5 +81,47 @@ describe("contract price flag", () => {
     const result = calculate(design, { tier: "trade" });
     if (!result.ok) throw new Error(result.error);
     expect(result.priced.lines.some((l) => l.contractPrice)).toBe(false);
+  });
+});
+
+describe("calculate with a steel panel design", () => {
+  const panel: PanelDesign = {
+    system: "panel",
+    fenceHeightMm: 1800,
+    sleepers: 0,
+    postLengthMm: null,
+    profile: "sawtooth",
+    colour: "mist-grey",
+    frameColour: "slate-grey",
+    concrete: "post-mix",
+    mounting: "in-ground",
+    runs: [{ id: "run-1", lengthMm: 10000, startsAtCorner: false }],
+  };
+
+  it("prices the 10 m run through the same pipeline", () => {
+    const result = calculate(panel, { tier: "retail" });
+    if (!result.ok) throw new Error(result.error);
+    expect(result.heightOptions).toEqual([]);
+    expect(result.cutPlans).toEqual([]);
+    const sum = result.priced.lines.reduce((t, l) => t + l.lineTotalCents, 0);
+    expect(result.priced.totals.exGstCents).toBe(sum);
+    expect(result.priced.totals.gstCents).toBe(Math.round(sum / 10));
+    expect(sum).toBeGreaterThan(0);
+  });
+
+  it("charges less at trade than retail", () => {
+    const retail = calculate(panel, { tier: "retail" });
+    const trade = calculate(panel, { tier: "trade" });
+    if (!retail.ok || !trade.ok) throw new Error("expected both to price");
+    expect(trade.priced.totals.incGstCents).toBeLessThan(
+      retail.priced.totals.incGstCents,
+    );
+    expect(trade.priced.savingCents).toBeGreaterThan(0);
+  });
+
+  it("reports a run that's too short instead of throwing", () => {
+    const short = { ...panel, runs: [{ ...panel.runs[0], lengthMm: 2000 }] };
+    const result = calculate(short, { tier: "retail" });
+    expect(result.ok).toBe(false);
   });
 });

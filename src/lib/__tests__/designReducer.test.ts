@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { designReducer, initialDesign } from "../designReducer";
-import type { Design } from "@/engine/types";
+import {
+  designReducer,
+  initialDesign,
+  initialPanelDesign,
+  type DesignAction,
+} from "../designReducer";
+import type { Design, PanelDesign, SlatDesign } from "@/engine/types";
 
 const twoRuns: Design = {
   ...initialDesign,
@@ -10,9 +15,12 @@ const twoRuns: Design = {
   ],
 };
 
+const slatReducer = (design: Design, action: DesignAction) =>
+  designReducer(design, action) as SlatDesign;
+
 describe("designReducer: height", () => {
   it("selects the closest build when the current one is no longer offered", () => {
-    const next = designReducer(initialDesign, {
+    const next = slatReducer(initialDesign, {
       type: "setTargetHeight",
       mm: 1200,
     });
@@ -26,19 +34,19 @@ describe("designReducer: height", () => {
   });
 
   it("keeps a chosen build while it is still offered", () => {
-    const chosen = designReducer(initialDesign, {
+    const chosen = slatReducer(initialDesign, {
       type: "selectHeight",
       gapMm: 9,
       slatCount: 24,
     });
-    const next = designReducer(chosen, { type: "setTargetHeight", mm: 1790 });
+    const next = slatReducer(chosen, { type: "setTargetHeight", mm: 1790 });
     expect(next.gapMm).toBe(9);
     expect(next.slatCount).toBe(24);
   });
 
   it("keeps the last build while the target cannot be built", () => {
     for (const mm of [Number.NaN, 18, 5000]) {
-      const next = designReducer(initialDesign, {
+      const next = slatReducer(initialDesign, {
         type: "setTargetHeight",
         mm,
       });
@@ -151,5 +159,115 @@ describe("designReducer: runs", () => {
       mm: 1000,
     });
     expect(next.runs[1].gate).toEqual({ widthMm: 1000 });
+  });
+});
+
+describe("designReducer: fence type", () => {
+  const toPanel = (design: Design = initialDesign) =>
+    designReducer(design, { type: "setSystem", system: "panel" });
+
+  it("switches type and uses that type's defaults", () => {
+    const next = toPanel();
+    expect(next).toEqual({ ...initialPanelDesign, runs: initialDesign.runs });
+  });
+
+  it("does nothing when the type is unchanged", () => {
+    const panel = toPanel();
+    expect(designReducer(panel, { type: "setSystem", system: "panel" })).toBe(
+      panel,
+    );
+  });
+
+  it("keeps runs, mounting and corners, within the new limits", () => {
+    const slat: Design = {
+      ...initialDesign,
+      mounting: "base-plate",
+      runs: [
+        { id: "run-1", lengthMm: 300, startsAtCorner: false },
+        { id: "run-2", lengthMm: 4000, startsAtCorner: true },
+      ],
+    };
+    const next = toPanel(slat);
+    expect(next.mounting).toBe("base-plate");
+    expect(next.runs.map((r) => r.lengthMm)).toEqual([2500, 4000]);
+    expect(next.runs[1].startsAtCorner).toBe(true);
+  });
+
+  it("limits a long panel run when going back to slat", () => {
+    const panel: Design = {
+      ...initialPanelDesign,
+      runs: [{ id: "run-1", lengthMm: 90000, startsAtCorner: false }],
+    };
+    const next = designReducer(panel, { type: "setSystem", system: "slat" });
+    expect(next.runs[0].lengthMm).toBe(50000);
+  });
+
+  it("replaces a half-typed length with a valid one", () => {
+    const slat: Design = {
+      ...initialDesign,
+      runs: [{ id: "run-1", lengthMm: Number.NaN, startsAtCorner: false }],
+    };
+    expect(toPanel(slat).runs[0].lengthMm).toBe(3000);
+  });
+
+  it("uses the single gate on a panel fence, whatever the slat gate was", () => {
+    const slat: Design = {
+      ...initialDesign,
+      runs: [
+        {
+          id: "run-1",
+          lengthMm: 6000,
+          startsAtCorner: false,
+          gate: { widthMm: 1100 },
+        },
+      ],
+    };
+    expect(toPanel(slat).runs[0].gate).toEqual({ widthMm: 930 });
+  });
+
+  it("gives a new gate the panel width on a panel fence", () => {
+    const next = designReducer(toPanel(), {
+      type: "setGate",
+      id: "run-1",
+      hasGate: true,
+    });
+    expect(next.runs[0].gate).toEqual({ widthMm: 930 });
+  });
+});
+
+describe("designReducer: panel options", () => {
+  const panel: PanelDesign = { ...initialPanelDesign, postLengthMm: 3000 };
+
+  it.each([
+    ["height", { type: "setFenceHeight", mm: 1500 } as const],
+    ["sleepers", { type: "setSleepers", sleepers: 1 } as const],
+    ["mounting", { type: "setMounting", mounting: "base-plate" } as const],
+  ])("returns to the recommended post when %s changes", (_, action) => {
+    const next = designReducer(panel, action) as PanelDesign;
+    expect(next.postLengthMm).toBeNull();
+  });
+
+  it("sets the remaining options", () => {
+    const apply = (action: DesignAction) =>
+      designReducer(panel, action) as PanelDesign;
+    expect(apply({ type: "setPostLength", mm: 2700 }).postLengthMm).toBe(2700);
+    expect(apply({ type: "setProfile", profile: "trimline" }).profile).toBe(
+      "trimline",
+    );
+    expect(apply({ type: "setConcrete", concrete: "none" }).concrete).toBe(
+      "none",
+    );
+    expect(
+      apply({ type: "setFrameColour", colour: "terracotta" }).frameColour,
+    ).toBe("terracotta");
+  });
+
+  it("ignores options that belong to the other fence type", () => {
+    expect(
+      designReducer(initialDesign, { type: "setFenceHeight", mm: 1500 }),
+    ).toBe(initialDesign);
+    expect(designReducer(panel, { type: "setTargetHeight", mm: 1500 })).toBe(
+      panel,
+    );
   });
 });

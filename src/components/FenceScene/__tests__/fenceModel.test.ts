@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { buildBom, layoutRuns } from "@/engine/bom";
-import type { Design, Mounting, Run } from "@/engine/types";
+import type { Mounting, PanelDesign, Run, SlatDesign } from "@/engine/types";
+import { layoutPanelRuns } from "@/engine/panelBom";
+import { initialPanelDesign } from "@/lib/designReducer";
 import { buildFenceModel, type Box } from "../fenceModel";
 
-function design(runs: Run[], mounting: Mounting = "in-ground"): Design {
+function design(runs: Run[], mounting: Mounting = "in-ground"): SlatDesign {
   return {
     system: "slat",
     targetHeightMm: 1800,
@@ -23,7 +25,7 @@ const cornerGate: Run = {
   gate: { widthMm: 900 },
 };
 
-function modelOf(d: Design, index = 0) {
+function modelOf(d: SlatDesign, index = 0) {
   return buildFenceModel(d, layoutRuns(d)[index]);
 }
 
@@ -144,7 +146,7 @@ describe("buildFenceModel: corners and gates", () => {
 
 // The 3D view must never disagree with what is being ordered.
 describe("buildFenceModel matches the BOM", () => {
-  const cases: [string, Design][] = [
+  const cases: [string, SlatDesign][] = [
     ["one run", design([plain])],
     ["corner and gate", design([plain, cornerGate])],
     ["base plate", design([plain, cornerGate], "base-plate")],
@@ -159,5 +161,44 @@ describe("buildFenceModel matches the BOM", () => {
       0,
     );
     expect(drawn).toBe(buildBom(d).lines[0].qty);
+  });
+});
+
+describe("buildFenceModel: steel panels", () => {
+  const d: PanelDesign = {
+    ...initialPanelDesign,
+    sleepers: 1,
+    runs: [
+      { id: "a", lengthMm: 10000, startsAtCorner: false },
+      {
+        id: "b",
+        lengthMm: 4000,
+        startsAtCorner: true,
+        gate: { widthMm: 930 },
+      },
+    ],
+  };
+  const [first, second] = layoutPanelRuns(d);
+  const model = buildFenceModel(d, first);
+
+  it("has sheets, rails and sleepers, and no slats", () => {
+    expect(model.sheets).toHaveLength(13);
+    expect(model.rails).toHaveLength(8);
+    expect(model.sleepers).toHaveLength(4);
+    expect(model.slats).toEqual([]);
+    expect(model.panels).toEqual([]);
+  });
+
+  it("sits the sleepers on the ground, and tops out at the fence height", () => {
+    for (const sleeper of model.sleepers) expect(bottom(sleeper)).toBe(0);
+    expect(Math.max(...model.posts.map(top))).toBe(1950);
+    expect(model.heightMm).toBe(1950);
+  });
+
+  it("flags the shared corner, and matches the layout's post count", () => {
+    const corner = buildFenceModel(d, second);
+    expect(corner.posts[0].shared).toBe(true);
+    expect(corner.posts.filter((p) => !p.shared)).toHaveLength(second.posts);
+    expect(corner.gate?.widthMm).toBe(930);
   });
 });

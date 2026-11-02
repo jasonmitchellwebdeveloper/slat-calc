@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { buildBom, layoutRuns } from "@/engine/bom";
-import type { Design, Mounting, Run } from "@/engine/types";
+import type { Mounting, PanelDesign, Run, SlatDesign } from "@/engine/types";
+import { layoutPanelRuns } from "@/engine/panelBom";
+import { initialPanelDesign } from "@/lib/designReducer";
 import { buildElevation, describeElevation } from "../elevationGeometry";
 
-function design(runs: Run[], mounting: Mounting = "in-ground"): Design {
+function design(runs: Run[], mounting: Mounting = "in-ground"): SlatDesign {
   return {
     system: "slat",
     targetHeightMm: 1800,
@@ -23,7 +25,7 @@ const cornerGate: Run = {
   gate: { widthMm: 900 },
 };
 
-function elevationOf(d: Design, index = 0) {
+function elevationOf(d: SlatDesign, index = 0) {
   return buildElevation(d, layoutRuns(d)[index]);
 }
 
@@ -158,7 +160,7 @@ describe("buildElevation: short runs", () => {
 
 // The picture must never disagree with what is being ordered.
 describe("buildElevation matches the BOM", () => {
-  const cases: [string, Design][] = [
+  const cases: [string, SlatDesign][] = [
     ["one run", design([plain])],
     ["corner and gate", design([plain, cornerGate])],
     ["base plate", design([plain, cornerGate], "base-plate")],
@@ -209,5 +211,102 @@ describe("describeElevation", () => {
   it("uses the singular for one bay", () => {
     const d = design([{ ...plain, lengthMm: 1000 }]);
     expect(describeElevation(layoutRuns(d)[0], 0)).toContain("1 bay,");
+  });
+});
+
+describe("buildElevation: steel panels", () => {
+  const panelDesign = (
+    runs: Run[],
+    overrides: Partial<PanelDesign> = {},
+  ): PanelDesign => ({ ...initialPanelDesign, runs, ...overrides });
+  const of = (d: PanelDesign, index = 0) =>
+    buildElevation(d, layoutPanelRuns(d)[index]);
+  const longRun: Run = { id: "a", lengthMm: 10000, startsAtCorner: false };
+
+  it("spaces posts by each panel's own width", () => {
+    const e = of(panelDesign([longRun]));
+    const gaps = e.posts.slice(1).map((p, i) => p.x - e.posts[i].x);
+    expect(gaps).toEqual([2400, 2400, 2400, 2700]);
+  });
+
+  it("draws every sheet and two rails per panel, and no slats", () => {
+    const e = of(panelDesign([longRun]));
+    expect(e.sheets).toHaveLength(13);
+    expect(e.rails).toHaveLength(8);
+    expect(e.slats).toEqual([]);
+  });
+
+  it("marks only cut panels", () => {
+    const e = of(panelDesign([{ ...longRun, lengthMm: 4000 }]));
+    expect(e.bays.map((b) => b.cut)).toEqual([false, true]);
+  });
+
+  it("sits sleepers on the ground, under the panel", () => {
+    const e = of(panelDesign([longRun], { sleepers: 2 }));
+    expect(e.sleepers).toHaveLength(4);
+    expect(e.sleepers[0].y + e.sleepers[0].height).toBe(e.groundY);
+    expect(e.groundY - e.fenceTopY).toBe(2100);
+  });
+
+  it("runs posts below ground by what the post length leaves", () => {
+    const e = of(panelDesign([longRun], { postLengthMm: 3000 }));
+    expect(e.posts[0].y + e.posts[0].height - e.groundY).toBe(1200);
+    const short = of(panelDesign([longRun], { postLengthMm: 1800 }));
+    expect(short.posts[0].y + short.posts[0].height).toBe(short.groundY);
+  });
+
+  it("uses a plate per post on base plates", () => {
+    const e = of(panelDesign([longRun], { mounting: "base-plate" }));
+    expect(e.basePlates).toHaveLength(5);
+    expect(e.posts[0].y + e.posts[0].height).toBe(e.groundY);
+  });
+
+  it("puts the gate between its own two posts", () => {
+    const e = of(panelDesign([{ ...longRun, gate: { widthMm: 930 } }]));
+    const [near, far] = e.posts.slice(-2);
+    expect(e.gate!.leaf.width).toBe(930);
+    expect(e.gate!.leaf.x).toBeGreaterThan(near.x + near.width);
+    expect(e.gate!.leaf.x + 930).toBeLessThan(far.x);
+    expect(e.posts).toHaveLength(7);
+  });
+
+  it.each([
+    ["one run", [longRun]],
+    ["short", [{ ...longRun, lengthMm: 2500 }]],
+    ["long", [{ ...longRun, lengthMm: 100000 }]],
+    [
+      "corner and gate",
+      [
+        longRun,
+        {
+          id: "b",
+          lengthMm: 4000,
+          startsAtCorner: true,
+          gate: { widthMm: 930 },
+        },
+      ],
+    ],
+  ] as [string, Run[]][])(
+    "%s: solid posts match, and fit the drawing",
+    (_, runs) => {
+      const d = panelDesign(runs);
+      const layouts = layoutPanelRuns(d);
+      layouts.forEach((layout) => {
+        const e = buildElevation(d, layout);
+        expect(e.posts.filter((p) => !p.shared)).toHaveLength(layout.posts);
+        for (const s of [...e.posts, ...e.sheets, ...e.rails]) {
+          expect(s.x).toBeGreaterThanOrEqual(0);
+          expect(s.x + s.width).toBeLessThanOrEqual(e.width);
+          expect(s.y + s.height).toBeLessThanOrEqual(e.height);
+        }
+      });
+    },
+  );
+
+  it("describes panels, not bays", () => {
+    const [layout] = layoutPanelRuns(panelDesign([longRun]));
+    expect(describeElevation(layout, 0)).toBe(
+      "Run 1: 10000 mm, 4 panels, 1800 mm high.",
+    );
   });
 });

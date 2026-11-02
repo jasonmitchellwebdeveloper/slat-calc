@@ -25,6 +25,8 @@ import type { Box, FenceModel } from "./fenceModel";
 const FIELD_OF_VIEW = 30;
 const MAX_PIXEL_RATIO = 2;
 const STRIPE_ROWS = 128;
+const RIB_TEXELS = 16;
+const RIBS_PER_SHEET = 6;
 const DEFAULT_AZIMUTH = -0.55;
 const DEFAULT_POLAR = 1.32;
 const MIN_POLAR = 0.5;
@@ -52,8 +54,25 @@ function createStripeTexture(faceFraction: number): DataTexture {
   return texture;
 }
 
+// Shading across a sheet, so its profile reads at any size.
+function createRibTexture(): DataTexture {
+  const data = new Uint8Array(RIB_TEXELS * 4);
+  for (let texel = 0; texel < RIB_TEXELS; texel++) {
+    const value = texel < RIB_TEXELS / 4 ? 190 : 255;
+    data.fill(value, texel * 4, texel * 4 + 3);
+    data[texel * 4 + 3] = 255;
+  }
+  const texture = new DataTexture(data, RIB_TEXELS, 1);
+  texture.wrapS = RepeatWrapping;
+  texture.repeat.set(RIBS_PER_SHEET, 1);
+  texture.minFilter = LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export interface FenceStage {
-  setModel: (model: FenceModel, colourHex: string) => void;
+  setModel: (model: FenceModel, infillHex: string, frameHex: string) => void;
   setLabel: (label: string) => void;
   rotate: (radians: number) => void;
   resetView: () => void;
@@ -106,6 +125,13 @@ export function createFenceStage(
     metalness: 0.2,
     transparent: true,
   });
+  const ribs = createRibTexture();
+  ribs.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const ribbed = new MeshStandardMaterial({
+    roughness: 0.55,
+    metalness: 0.2,
+    map: ribs,
+  });
   let stripes: DataTexture | null = null;
   let stripesFraction = 0;
   const seeThrough = new MeshStandardMaterial({
@@ -114,7 +140,14 @@ export function createFenceStage(
     depthWrite: false,
   });
   const hingeMaterial = new MeshStandardMaterial({ color: HINGE_COLOUR });
-  const materials = [groundMaterial, solid, slatted, seeThrough, hingeMaterial];
+  const materials = [
+    groundMaterial,
+    solid,
+    slatted,
+    ribbed,
+    seeThrough,
+    hingeMaterial,
+  ];
 
   const camera = new PerspectiveCamera(FIELD_OF_VIEW);
   const controls = new OrbitControls(camera, canvas);
@@ -215,19 +248,25 @@ export function createFenceStage(
   }
 
   return {
-    setModel(model, colourHex) {
+    setModel(model, infillHex, frameHex) {
       const resized =
         current?.spanMm !== model.spanMm ||
         current?.heightMm !== model.heightMm ||
         current?.basePlates.length !== model.basePlates.length;
       current = model;
 
-      solid.color.set(colourHex);
-      slatted.color.set(colourHex);
-      seeThrough.color.set(colourHex);
+      solid.color.set(frameHex);
+      slatted.color.set(infillHex);
+      ribbed.color.set(infillHex);
+      seeThrough.color.set(frameHex);
       clearFence();
-      setStripes(model);
-      addBoxes(model.panels, slatted);
+      if (model.panels.length > 0) {
+        setStripes(model);
+        addBoxes(model.panels, slatted);
+      }
+      addBoxes(model.sheets, ribbed);
+      addBoxes(model.rails, solid);
+      addBoxes(model.sleepers, solid);
       addBoxes(
         model.posts.filter((p) => !p.shared),
         solid,
@@ -272,6 +311,7 @@ export function createFenceStage(
       unitBox.dispose();
       groundGeometry.dispose();
       stripes?.dispose();
+      ribs.dispose();
       for (const material of materials) material.dispose();
       renderer.dispose();
       renderer.forceContextLoss(); // browsers allow only a few live contexts

@@ -27,7 +27,7 @@ export type ConcreteType = "post-mix" | "rapid-set" | "none";
 export interface PanelDesign {
   system: "panel";
   fenceHeightMm: number; // of the panel, not counting sleepers
-  sleepers: number; // rows under each panel
+  sleepers: 0 | 1 | 2; // rows under each panel
   postLengthMm: number | null; // null uses the recommended length
   profile: PanelProfile;
   colour: string; // infill sheets
@@ -37,7 +37,7 @@ export interface PanelDesign {
   runs: Run[];
 }
 
-export type Design = SlatDesign;
+export type Design = SlatDesign | PanelDesign;
 
 export interface Product {
   sku: string;

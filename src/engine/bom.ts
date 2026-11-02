@@ -14,7 +14,7 @@ import {
   PRODUCTS,
 } from "./catalogue";
 import { panelHeightFor } from "./height";
-import type { Design, Mounting, Product, Run } from "./types";
+import type { Mounting, Product, Run, SlatDesign } from "./types";
 
 export interface BomLine {
   sku: string;
@@ -93,7 +93,7 @@ function pickPost(fenceHeightMm: number, mounting: Mounting): Product {
 }
 
 // Geometry per run. The BOM and the elevation both draw from this.
-export function layoutRuns(design: Design): RunLayout[] {
+export function layoutRuns(design: SlatDesign): RunLayout[] {
   const { gapMm, slatCount, runs } = design;
   const panelHeightMm = panelHeightFor(gapMm, slatCount);
   const fenceHeightMm = panelHeightMm + GROUND_CLEARANCE_MM;
@@ -124,7 +124,7 @@ export function layoutRuns(design: Design): RunLayout[] {
   });
 }
 
-export function buildBom(design: Design): Bom {
+export function buildBom(design: SlatDesign): Bom {
   const layouts = layoutRuns(design);
   if (layouts.length === 0) return { lines: [], cuts: [] };
 

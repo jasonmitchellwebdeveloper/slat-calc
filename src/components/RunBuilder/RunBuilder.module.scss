@@ -58,6 +58,11 @@
   }
 }
 
+.gateNote {
+  margin: 0;
+  color: var(--colour-muted);
+}
+
 .add {
   @include tap-target;
   padding: 0 var(--space-4);

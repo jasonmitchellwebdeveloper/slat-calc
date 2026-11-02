@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { calculate } from "@/engine/calculate";
-import type { Design } from "@/engine/types";
-import { initialDesign } from "../designReducer";
+import type { Design, PanelDesign } from "@/engine/types";
+import { initialDesign, initialPanelDesign } from "../designReducer";
 import {
   formatLength,
   gateWidthError,
+  panelRunLengthError,
   parseLengthMm,
   runLengthError,
   targetHeightError,
@@ -111,6 +112,26 @@ describe("field rules match the engine", () => {
     expect(targetHeightError(targetHeightMm, "mm") === undefined).toBe(
       isOk(design),
     );
+  });
+});
+
+describe("panel run length matches the engine", () => {
+  it.each([Number.NaN, 0, 2499, 2500, 6000, 100000, 100001])(
+    "%d",
+    (lengthMm) => {
+      const design: PanelDesign = {
+        ...initialPanelDesign,
+        runs: [{ id: "run-1", lengthMm, startsAtCorner: false }],
+      };
+      expect(panelRunLengthError(lengthMm, "mm") === undefined).toBe(
+        isOk(design),
+      );
+    },
+  );
+
+  it("states the range in the unit being entered", () => {
+    expect(panelRunLengthError(1, "m")).toBe("Enter 2.5 to 100 m.");
+    expect(panelRunLengthError(1, "mm")).toBe("Enter 2500 to 100000 mm.");
   });
 });
 

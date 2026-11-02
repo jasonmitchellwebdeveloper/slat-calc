@@ -2,7 +2,7 @@ import { compressToEncodedURIComponent } from "lz-string";
 import { describe, expect, it } from "vitest";
 import { initialDesign } from "../designReducer";
 import { designSearch, readDesignFromSearch } from "../designUrl";
-import type { Design } from "@/engine/types";
+import type { Design, PanelDesign } from "@/engine/types";
 
 const twoRuns: Design = {
   system: "slat",
@@ -125,3 +125,64 @@ describe("rejecting a bad link", () => {
 function runWith(change: object): object {
   return { ...twoRuns, runs: [{ ...twoRuns.runs[0], ...change }] };
 }
+
+describe("steel panel links", () => {
+  const panel: PanelDesign = {
+    system: "panel",
+    fenceHeightMm: 2100,
+    sleepers: 1,
+    postLengthMm: 3000,
+    profile: "trimline",
+    colour: "off-white",
+    frameColour: "deep-charcoal",
+    concrete: "none",
+    mounting: "in-ground",
+    runs: [
+      { id: "run-1", lengthMm: 10000, startsAtCorner: false },
+      {
+        id: "run-2",
+        lengthMm: 4000,
+        startsAtCorner: true,
+        gate: { widthMm: 930 },
+      },
+    ],
+  };
+
+  it("round-trips exactly", () => {
+    expect(readDesignFromSearch(designSearch(panel))).toEqual({
+      design: panel,
+      linkInvalid: false,
+    });
+  });
+
+  it.each([
+    ["a height with no sheet", { fenceHeightMm: 1650 }],
+    ["a slat colour", { colour: "woodgrain" }],
+    ["too many sleepers", { sleepers: 3 }],
+    ["a post under the fence", { postLengthMm: 1800 }],
+    ["an unknown concrete", { concrete: "gravel" }],
+    [
+      "a run that's too short",
+      { runs: [{ id: "run-1", lengthMm: 2000, startsAtCorner: false }] },
+    ],
+    [
+      "a gate of the wrong width",
+      {
+        runs: [
+          {
+            id: "run-1",
+            lengthMm: 5000,
+            startsAtCorner: false,
+            gate: { widthMm: 800 },
+          },
+        ],
+      },
+    ],
+  ])("rejects %s", (_, change) => {
+    expectRejected(searchFor({ ...panel, ...change }));
+  });
+
+  it("rejects an unknown fence type", () => {
+    expectRejected(searchFor({ ...panel, system: "picket" }));
+  });
+});

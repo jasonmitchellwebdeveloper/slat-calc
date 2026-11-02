@@ -1,14 +1,15 @@
 import type { CSSProperties } from "react";
-import type { RunLayout } from "@/engine/bom";
+import type { FenceLayout } from "@/engine/calculate";
 import type { Design } from "@/engine/types";
 import styles from "./ElevationDrawing.module.scss";
 import { buildElevation, describeElevation } from "./elevationGeometry";
 
 interface ElevationDrawingProps {
   design: Design;
-  layout: RunLayout;
+  layout: FenceLayout;
   index: number;
   colourHex: string;
+  frameHex: string;
 }
 
 // Long runs scroll sideways at this scale instead of shrinking to a thin line.
@@ -21,6 +22,7 @@ export function ElevationDrawing({
   layout,
   index,
   colourHex,
+  frameHex,
 }: ElevationDrawingProps) {
   const drawing = buildElevation(design, layout);
   const { fenceSpan, gate, groundY, fenceTopY } = drawing;
@@ -36,6 +38,7 @@ export function ElevationDrawing({
       style={
         {
           "--fence-colour": colourHex,
+          "--frame-colour": frameHex,
           minWidth: `${Math.round(drawing.width * MIN_PX_PER_MM)}px`,
         } as CSSProperties
       }
@@ -50,6 +53,16 @@ export function ElevationDrawing({
 
       {drawing.slats.map((slat) => (
         <rect key={`${slat.x}-${slat.y}`} className={styles.fence} {...slat} />
+      ))}
+
+      {drawing.sheets.map((sheet) => (
+        <rect key={sheet.x} className={styles.sheet} {...sheet} />
+      ))}
+      {drawing.rails.map((rail) => (
+        <rect key={`${rail.x}-${rail.y}`} className={styles.frame} {...rail} />
+      ))}
+      {drawing.sleepers.map((sleeper) => (
+        <rect key={sleeper.x} className={styles.frame} {...sleeper} />
       ))}
 
       {gate && (
@@ -127,6 +140,11 @@ export function ElevationDrawing({
           textAnchor="middle"
         >
           {bay.widthMm} mm
+          {bay.cut && (
+            <tspan className={styles.cut} x={bay.centreX} dy={260}>
+              cut
+            </tspan>
+          )}
         </text>
       ))}
 

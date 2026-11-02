@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { RunLayout } from "@/engine/bom";
+import type { FenceLayout } from "@/engine/calculate";
 import type { Design } from "@/engine/types";
 import { Button } from "../Button/Button";
 import { SceneUnavailable } from "../SceneUnavailable/SceneUnavailable";
@@ -9,8 +9,9 @@ import { createFenceStage, type FenceStage } from "./fenceStage";
 
 interface FenceSceneProps {
   design: Design;
-  layout: RunLayout;
+  layout: FenceLayout;
   colourHex: string;
+  frameHex: string;
   label: string;
 }
 
@@ -20,6 +21,7 @@ export function FenceScene({
   design,
   layout,
   colourHex,
+  frameHex,
   label,
 }: FenceSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -50,8 +52,8 @@ export function FenceScene({
   }, []);
 
   useEffect(() => {
-    stageRef.current?.setModel(model, colourHex);
-  }, [model, colourHex]);
+    stageRef.current?.setModel(model, colourHex, frameHex);
+  }, [model, colourHex, frameHex]);
 
   useEffect(() => {
     stageRef.current?.setLabel(label);

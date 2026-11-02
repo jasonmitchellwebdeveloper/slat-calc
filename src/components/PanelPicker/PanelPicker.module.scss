@@ -1,0 +1,10 @@
+.picker {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.note {
+  margin: 0.25rem 0 0;
+  color: var(--colour-muted);
+  font-size: 0.875rem;
+}

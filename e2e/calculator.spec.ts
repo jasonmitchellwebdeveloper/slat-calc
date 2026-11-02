@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { compressToEncodedURIComponent } from "lz-string";
 
 const total = (page: Page) => page.locator('[aria-live="polite"]');
 const requestQuote = (page: Page) =>
@@ -259,5 +260,141 @@ test.describe("3D view", () => {
     await page.emulateMedia({ media: "print" });
     await expect(page.locator("canvas")).toBeHidden();
     await expect(page.getByRole("img", { name: /^Run 1/ })).toBeVisible();
+  });
+});
+
+test.describe("steel panel fence", () => {
+  const toPanel = async (page: Page, length = "10000") => {
+    await page.getByRole("radio", { name: "Steel panel" }).check();
+    await page.locator("#run-1-length").fill(length);
+  };
+  const row = (page: Page, name: RegExp) =>
+    page.locator("#results").getByRole("row", { name }).getByRole("cell");
+
+  test("orders the 10 m reference run", async ({ page }) => {
+    await toPanel(page);
+    await expect(row(page, /^Sawtooth infill sheet/).first()).toHaveText("13");
+    await expect(row(page, /^Channel post/).first()).toHaveText("8");
+    await expect(row(page, /^Steel post 50/).first()).toHaveText("2");
+    await expect(row(page, /^Panel rail, 2400/).first()).toHaveText("6");
+    await expect(row(page, /^Panel rail, 3180/).first()).toHaveText("2");
+    await expect(row(page, /^Tek screw/).first()).toHaveText("48");
+    await expect(row(page, /^Concrete post mix/).first()).toHaveText("8");
+    await expect(page.locator("#results")).toContainText(
+      "Run 1, panel 4: cut to 2700 mm",
+    );
+    await expect(page.getByRole("img")).toHaveAccessibleName(
+      "Run 1: 10000 mm, 4 panels, 1800 mm high.",
+    );
+  });
+
+  test("keeps runs when switching type, and the slat figures return", async ({
+    page,
+  }) => {
+    await toPanel(page, "6000");
+    await expect(total(page)).not.toContainText("$1,521.85");
+    await page.getByRole("radio", { name: "Aluminium slat" }).check();
+    await expect(page.locator("#run-1-length")).toHaveValue("6000");
+    await expect(total(page)).toContainText("$1,521.85");
+  });
+
+  test("reopens from a link with every option", async ({ page }) => {
+    await toPanel(page);
+    await page.getByRole("radio", { name: "1 (150 mm)" }).check();
+    await page.getByRole("radio", { name: "Trimline" }).check();
+    await page.getByRole("radio", { name: "Rapid set" }).check();
+    await expect(page).toHaveURL(/\?d=/);
+    const before = await total(page).innerText();
+    await page.reload();
+    await expect(
+      page.getByRole("radio", { name: "Steel panel" }),
+    ).toBeChecked();
+    await expect(page.getByRole("radio", { name: "Trimline" })).toBeChecked();
+    await expect(page.getByRole("radio", { name: "Rapid set" })).toBeChecked();
+    await expect(total(page)).toHaveText(before);
+  });
+
+  test("still opens a link from before fence types existed", async ({
+    page,
+  }) => {
+    const encoded = compressToEncodedURIComponent(
+      JSON.stringify({
+        targetHeightMm: 1800,
+        gapMm: 5,
+        slatCount: 25,
+        colour: "charcoal",
+        mounting: "in-ground",
+        runs: [{ id: "run-1", lengthMm: 6000, startsAtCorner: false }],
+      }),
+    );
+    await page.goto(`/?d=${encoded}`);
+    await expect(
+      page.getByRole("radio", { name: "Aluminium slat" }),
+    ).toBeChecked();
+    await expect(total(page)).toContainText("$1,521.85");
+    await expect(page.getByText("couldn't be read")).toHaveCount(0);
+  });
+
+  test("has no axe violations", async ({ page }) => {
+    await toPanel(page);
+    await expectNoAxeViolations(page);
+  });
+
+  test("has no axe violations with a gate, sleepers and 3D", async ({
+    page,
+  }) => {
+    await toPanel(page);
+    await page.getByRole("radio", { name: "2 (300 mm)" }).check();
+    await page.getByLabel("Add gate at the end").check();
+    await expectNoAxeViolations(page);
+    await page.getByRole("radio", { name: "3D view" }).check();
+    await expect(page.locator("canvas")).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+
+  test("a keyboard alone can request a quote", async ({ page }) => {
+    await tabTo(page, page.getByRole("radio", { name: "Aluminium slat" }));
+    await page.keyboard.press("ArrowRight");
+    await expect(
+      page.getByRole("radio", { name: "Steel panel" }),
+    ).toBeChecked();
+    await tabTo(
+      page,
+      page.getByRole("radio", { name: "1800 mm", exact: true }),
+    );
+    await page.keyboard.press("ArrowRight");
+    await expect(
+      page.getByRole("radio", { name: "2100 mm", exact: true }).first(),
+    ).toBeChecked();
+    await tabTo(page, page.locator("#run-1-length"));
+    await page.keyboard.type("7500");
+    await tabTo(page, requestQuote(page));
+    await page.keyboard.press("Enter");
+    await expect(page.locator("#results [role=status]").first()).toContainText(
+      /Quote Q-\d{8}-[0-9A-F]{4} received/,
+    );
+  });
+
+  test("rejects a tampered price", async ({ page }) => {
+    await toPanel(page);
+    await requestQuote(page).click();
+    await page.getByText("View payload").click();
+    const payload = JSON.parse(await page.locator("#results pre").innerText());
+    const honest = await page.request.post("/api/quote", { data: payload });
+    expect(honest.status()).toBe(200);
+    payload.totals.incGstCents = 100;
+    const tampered = await page.request.post("/api/quote", { data: payload });
+    expect(tampered.status()).toBe(422);
+  });
+
+  test("draws in 3D, and redraws for a new frame colour", async ({ page }) => {
+    await toPanel(page);
+    await page.getByRole("radio", { name: "3D view" }).check();
+    const canvas = page.locator("canvas");
+    await expect(canvas).toBeVisible();
+    const before = await canvas.screenshot();
+    await page.getByRole("radio", { name: "Terracotta" }).nth(1).check();
+    const after = await canvas.screenshot();
+    expect(after.equals(before)).toBe(false);
   });
 });

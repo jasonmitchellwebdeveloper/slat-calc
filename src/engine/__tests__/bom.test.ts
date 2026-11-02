@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildBom, layoutRuns } from "../bom";
 import { PRODUCTS } from "../catalogue";
-import type { Design, Run } from "../types";
+import type { SlatDesign, Run } from "../types";
 
 const { slat, post2400, post3000, channel, cap, basePlate, gateKit, fixings } =
   PRODUCTS;
@@ -10,7 +10,7 @@ function run(lengthMm: number, extra: Partial<Run> = {}): Run {
   return { id: `run-${lengthMm}`, lengthMm, startsAtCorner: false, ...extra };
 }
 
-function design(runs: Run[], extra: Partial<Design> = {}): Design {
+function design(runs: Run[], extra: Partial<SlatDesign> = {}): SlatDesign {
   return {
     system: "slat",
     targetHeightMm: 1800,
@@ -23,7 +23,7 @@ function design(runs: Run[], extra: Partial<Design> = {}): Design {
   };
 }
 
-function qty(d: Design, sku: string): number {
+function qty(d: SlatDesign, sku: string): number {
   return buildBom(d).lines.find((l) => l.sku === sku)?.qty ?? 0;
 }
 

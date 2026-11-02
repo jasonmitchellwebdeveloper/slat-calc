@@ -1,4 +1,4 @@
-import type { RunLayout } from "@/engine/bom";
+import type { FenceLayout } from "@/engine/calculate";
 import {
   POST_WIDTH_MM,
   SLAT_FACE_MM,
@@ -37,6 +37,9 @@ export interface FenceModel {
   heightMm: number;
   slats: Box[];
   panels: Box[]; // one per bay, covering its slats, for drawing
+  sheets: Box[];
+  rails: Box[];
+  sleepers: Box[];
   slatPeriodMm: number; // slat face plus gap
   slatFaceFraction: number; // share of each period that's slat
   posts: FencePost[];
@@ -46,9 +49,15 @@ export interface FenceModel {
 
 const GATE_FRAME_MM = 40;
 const HINGE_DEPTH_MM = 30;
+const SHEET_DEPTH_MM = 26;
+const RAIL_DEPTH_MM = 40;
+const SLEEPER_DEPTH_MM = 30;
 
 // Built from the 2D drawing's geometry, so the two views can't disagree.
-export function buildFenceModel(design: Design, layout: RunLayout): FenceModel {
+export function buildFenceModel(
+  design: Design,
+  layout: FenceLayout,
+): FenceModel {
   const drawing = buildElevation(design, layout);
   const { posts, groundY } = drawing;
 
@@ -95,9 +104,11 @@ export function buildFenceModel(design: Design, layout: RunLayout): FenceModel {
 
   const slats = drawing.slats.map((slat) => toBox(slat, SLAT_THICKNESS_MM));
   const lowestSlat = Math.min(...slats.map((s) => s.y - s.height / 2));
-  const panelHeight = layout.panelHeightMm;
+  const panelHeight = "panelHeightMm" in layout ? layout.panelHeightMm : 0;
+  const slatCutMm = "slatCutMm" in layout ? layout.slatCutMm : 0;
   const bayCentres = [...new Set(slats.map((slat) => slat.x))];
-  const slatPeriodMm = SLAT_FACE_MM + design.gapMm;
+  const slatPeriodMm =
+    design.system === "slat" ? SLAT_FACE_MM + design.gapMm : SLAT_FACE_MM;
 
   return {
     spanMm: toX - fromX,
@@ -107,10 +118,13 @@ export function buildFenceModel(design: Design, layout: RunLayout): FenceModel {
       x,
       y: lowestSlat + panelHeight / 2,
       z: 0,
-      width: layout.slatCutMm,
+      width: slatCutMm,
       height: panelHeight,
       depth: SLAT_THICKNESS_MM,
     })),
+    sheets: drawing.sheets.map((sheet) => toBox(sheet, SHEET_DEPTH_MM)),
+    rails: drawing.rails.map((rail) => toBox(rail, RAIL_DEPTH_MM)),
+    sleepers: drawing.sleepers.map((s) => toBox(s, SLEEPER_DEPTH_MM)),
     slatPeriodMm,
     slatFaceFraction: SLAT_FACE_MM / slatPeriodMm,
     posts: posts.map((post) => ({

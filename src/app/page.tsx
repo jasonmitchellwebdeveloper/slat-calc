@@ -6,7 +6,7 @@ export default function Home() {
     <div className={styles.page}>
       <header className={styles.header}>
         <h1>Slatwise</h1>
-        <p>Slat fence calculator. Specs and prices are illustrative.</p>
+        <p>Fence calculator. Specs and prices are illustrative.</p>
       </header>
       <main className={styles.main}>
         <Calculator />

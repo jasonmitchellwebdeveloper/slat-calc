@@ -4,15 +4,15 @@ import styles from "./BomTable.module.scss";
 
 interface BomTableProps {
   lines: PricedLine[];
-  colourName: string;
+  finish: string;
 }
 
-export function BomTable({ lines, colourName }: BomTableProps) {
+export function BomTable({ lines, finish }: BomTableProps) {
   return (
     <table className={styles.table}>
       <caption className={styles.caption}>
         <span className={styles.title}>Bill of materials</span>
-        <span className={styles.note}>{colourName} finish. Prices ex GST.</span>
+        <span className={styles.note}>{finish}. Prices ex GST.</span>
       </caption>
       <thead>
         <tr>
