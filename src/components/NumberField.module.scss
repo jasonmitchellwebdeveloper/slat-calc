@@ -9,11 +9,35 @@
   font-weight: 600;
 }
 
+.control {
+  position: relative;
+}
+
+// Lets a tap on the unit fall through to the input underneath.
+.unit {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  color: var(--colour-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+// The label is seen beside the field's own unit, but read aloud without it.
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 // 16px stops iOS zooming the page when the field takes focus.
 .input {
   @include tap-target;
   width: 100%;
-  padding: 0 var(--space-2);
+  padding: 0 3rem 0 var(--space-2);
   border: 1px solid var(--colour-muted);
   border-radius: var(--radius);
   background: var(--colour-surface);
@@ -25,17 +49,10 @@
   }
 }
 
-.confirm,
 .hint,
 .error {
   margin: 0;
   font-size: 0.875rem;
-}
-
-// Holds one line so nothing moves when the conversion appears.
-.confirm {
-  min-height: 1.25rem;
-  font-weight: 600;
 }
 
 .hint {

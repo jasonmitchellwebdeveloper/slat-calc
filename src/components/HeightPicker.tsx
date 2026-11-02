@@ -1,16 +1,17 @@
 import type { Dispatch } from "react";
 import { MAX_FENCE_HEIGHT_MM } from "@/engine/catalogue";
-import type { HeightOption } from "@/engine/height";
+import { MIN_FENCE_HEIGHT_MM, type HeightOption } from "@/engine/height";
 import type { Design } from "@/engine/types";
 import type { DesignAction } from "./designReducer";
 import styles from "./HeightPicker.module.scss";
 import { NumberField } from "./NumberField";
 import { OptionGroup } from "./OptionGroup";
-import { targetHeightError } from "./validation";
+import { rangeText, targetHeightError, type Unit } from "./validation";
 
 interface HeightPickerProps {
   design: Design;
   options: HeightOption[];
+  unit: Unit;
   dispatch: Dispatch<DesignAction>;
 }
 
@@ -18,15 +19,21 @@ function optionKey(option: Pick<HeightOption, "gapMm" | "slatCount">): string {
   return `${option.gapMm}-${option.slatCount}`;
 }
 
-export function HeightPicker({ design, options, dispatch }: HeightPickerProps) {
+export function HeightPicker({
+  design,
+  options,
+  unit,
+  dispatch,
+}: HeightPickerProps) {
   return (
     <div className={styles.picker}>
       <NumberField
+        key={unit}
         id="target-height"
         label="Target height"
-        hint="In metres or mm, e.g. 1.8 or 1800, including ground clearance"
+        hint={`${rangeText(MIN_FENCE_HEIGHT_MM, MAX_FENCE_HEIGHT_MM, unit)}, including ground clearance`}
         value={design.targetHeightMm}
-        maxMm={MAX_FENCE_HEIGHT_MM}
+        unit={unit}
         validate={targetHeightError}
         onChange={(mm) => dispatch({ type: "setTargetHeight", mm })}
       />

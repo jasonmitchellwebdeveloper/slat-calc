@@ -7,54 +7,51 @@ import {
 } from "@/engine/catalogue";
 import { MIN_FENCE_HEIGHT_MM, solveHeight } from "@/engine/height";
 
-export type Validate = (value: number) => string | undefined;
+export type Unit = "m" | "mm";
 
-const LENGTH_PATTERN = /^(\d*)(\.?)(\d*)\s*(mm|m)?$/i;
+export type Validate = (mm: number, unit: Unit) => string | undefined;
+
 const MM_PER_M = 1000;
 const MM_DIGITS = 3; // decimal places in a metre value that are whole mm
 
-// Reads metres or millimetres. A field's valid ranges in each unit don't
-// overlap, so a suffix, a decimal point or the size of the number settles which.
-// NaN stands in for anything half-typed, and the engine rejects it.
-export function parseLengthMm(text: string, maxMm: number): number {
-  const match = LENGTH_PATTERN.exec(text.trim());
-  if (!match) return Number.NaN;
+// Returns mm. NaN stands in for anything half-typed, and the engine rejects it.
+export function parseLengthMm(text: string, unit: Unit): number {
+  const trimmed = text.trim();
+  if (unit === "mm") {
+    return /^\d+$/.test(trimmed) ? Number(trimmed) : Number.NaN;
+  }
 
-  const [, whole, point, fraction, suffix] = match;
-  if (whole === "" && fraction === "") return Number.NaN;
-
-  const unit = suffix?.toLowerCase();
-  const inMetres =
-    unit === "m" ||
-    (unit !== "mm" && (point !== "" || Number(whole) <= maxMm / MM_PER_M));
+  const match = /^(\d*)\.?(\d*)$/.exec(trimmed);
+  if (!match || (match[1] === "" && match[2] === "")) return Number.NaN;
 
   // Digit by digit, so 2.4 is exactly 2400 and not a floating-point near miss.
-  const significant = fraction.replace(/0+$/, "");
-  if (inMetres) {
-    if (significant.length > MM_DIGITS) return Number.NaN;
-    const mm = significant.padEnd(MM_DIGITS, "0");
-    return Number(whole) * MM_PER_M + Number(mm);
-  }
-  return significant === "" ? Number(whole) : Number.NaN;
+  const fraction = match[2].replace(/0+$/, "");
+  if (fraction.length > MM_DIGITS) return Number.NaN;
+  return Number(match[1]) * MM_PER_M + Number(fraction.padEnd(MM_DIGITS, "0"));
 }
 
-function rangeMessage(min: number, max: number): string {
-  return `Enter ${min / MM_PER_M} to ${max / MM_PER_M} m, or ${min} to ${max} mm.`;
+export function formatLength(mm: number, unit: Unit): string {
+  if (Number.isNaN(mm)) return "";
+  return String(unit === "m" ? mm / MM_PER_M : mm);
 }
 
-function rangeError(value: number, min: number, max: number) {
-  const valid = Number.isInteger(value) && value >= min && value <= max;
-  return valid ? undefined : rangeMessage(min, max);
+export function rangeText(minMm: number, maxMm: number, unit: Unit): string {
+  return `${formatLength(minMm, unit)} to ${formatLength(maxMm, unit)} ${unit}`;
 }
 
-export const runLengthError: Validate = (mm) =>
-  rangeError(mm, MIN_RUN_MM, MAX_RUN_MM);
+function rangeError(mm: number, min: number, max: number, unit: Unit) {
+  const valid = Number.isInteger(mm) && mm >= min && mm <= max;
+  return valid ? undefined : `Enter ${rangeText(min, max, unit)}.`;
+}
 
-export const gateWidthError: Validate = (mm) =>
-  rangeError(mm, MIN_GATE_WIDTH_MM, MAX_GATE_WIDTH_MM);
+export const runLengthError: Validate = (mm, unit) =>
+  rangeError(mm, MIN_RUN_MM, MAX_RUN_MM, unit);
+
+export const gateWidthError: Validate = (mm, unit) =>
+  rangeError(mm, MIN_GATE_WIDTH_MM, MAX_GATE_WIDTH_MM, unit);
 
 // Some targets just over the max still round down to a build, so ask the solver.
-export const targetHeightError: Validate = (mm) =>
+export const targetHeightError: Validate = (mm, unit) =>
   solveHeight(mm).length > 0
     ? undefined
-    : rangeMessage(MIN_FENCE_HEIGHT_MM, MAX_FENCE_HEIGHT_MM);
+    : `Enter ${rangeText(MIN_FENCE_HEIGHT_MM, MAX_FENCE_HEIGHT_MM, unit)}.`;

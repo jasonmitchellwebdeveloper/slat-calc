@@ -23,6 +23,7 @@ import { OptionGroup, type Option } from "./OptionGroup";
 import { PriceSummary } from "./PriceSummary";
 import { RunBuilder } from "./RunBuilder";
 import { SummaryBar } from "./SummaryBar";
+import type { Unit } from "./validation";
 
 const URL_SYNC_DELAY_MS = 300;
 
@@ -38,6 +39,11 @@ const PRICE_LIST_OPTIONS: Option<PriceList>[] = [
   { value: "retail", label: "Retail" },
   { value: "trade", label: "Trade" },
   { value: "account", label: `Demo account (${DEMO_ACCOUNT_CODE})` },
+];
+
+const UNIT_OPTIONS: Option<Unit>[] = [
+  { value: "m", label: "Metres" },
+  { value: "mm", label: "Millimetres" },
 ];
 
 const COLOUR_OPTIONS: Option<string>[] = COLOURS.map((colour) => ({
@@ -86,6 +92,7 @@ interface CalculatorFormProps {
 function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
   const [design, dispatch] = useReducer(designReducer, startDesign);
   const [priceList, setPriceList] = useState<PriceList>("retail");
+  const [unit, setUnit] = useState<Unit>("m");
   const pricing = PRICE_CONTEXTS[priceList];
   const result = useMemo(() => calculate(design, pricing), [design, pricing]);
 
@@ -137,11 +144,22 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
           </section>
         )}
         <div className={`${styles.column} ${styles.form}`}>
+          <div className={styles.card}>
+            <OptionGroup
+              legend="Enter measurements in"
+              name="unit"
+              columns="row"
+              options={UNIT_OPTIONS}
+              value={unit}
+              onChange={setUnit}
+            />
+          </div>
           <section className={styles.card} aria-labelledby="step-height">
             <h2 id="step-height">Height</h2>
             <HeightPicker
               design={design}
               options={result.heightOptions}
+              unit={unit}
               dispatch={dispatch}
             />
           </section>
@@ -160,6 +178,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
             <h2 id="step-runs">Runs</h2>
             <RunBuilder
               runs={design.runs}
+              unit={unit}
               dispatch={dispatch}
               onSelectRun={setSelectedRunId}
             />
