@@ -6,10 +6,21 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
+const TITLE = "Slatwise | Slat fence calculator";
+const DESCRIPTION =
+  "Enter a target height and your fence runs to get a bill of materials, cut list and quote. Specs and prices are illustrative.";
+
 export const metadata: Metadata = {
-  title: "Slatwise | Slat fence calculator",
-  description:
-    "Enter a target height and your fence runs to get a bill of materials, cut list and quote. Specs and prices are illustrative.",
+  metadataBase: new URL("https://slat-calc.vercel.app"),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: "Slatwise",
+    locale: "en_AU",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

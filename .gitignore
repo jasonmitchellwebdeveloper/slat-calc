@@ -45,3 +45,7 @@ next-env.d.ts
 
 # browser tool output
 /.playwright-mcp/
+
+# playwright test output
+/test-results/
+/playwright-report/
