@@ -43,6 +43,21 @@ describe("buildFenceModel: the 6000 mm example", () => {
     }
   });
 
+  it("has one slatted panel per bay, spanning its slats", () => {
+    expect(model.panels).toHaveLength(4);
+    for (const panel of model.panels) {
+      expect(panel.width).toBe(1446);
+      expect(panel.depth).toBe(16);
+      expect(bottom(panel)).toBe(50);
+      expect(top(panel)).toBe(1795);
+    }
+  });
+
+  it("describes the slat pattern across a panel", () => {
+    expect(model.slatPeriodMm).toBe(70);
+    expect(model.slatFaceFraction).toBeCloseTo(65 / 70);
+  });
+
   it("has 5 square posts", () => {
     expect(model.posts).toHaveLength(5);
     for (const post of model.posts) {

@@ -1,7 +1,11 @@
+import dynamic from "next/dynamic";
+import { useState } from "react";
 import type { RunLayout } from "@/engine/bom";
 import type { Design } from "@/engine/types";
 import { ElevationDrawing } from "../ElevationDrawing/ElevationDrawing";
-import { OptionGroup } from "../OptionGroup/OptionGroup";
+import { describeElevation } from "../ElevationDrawing/elevationGeometry";
+import { OptionGroup, type Option } from "../OptionGroup/OptionGroup";
+import { SceneUnavailable } from "../SceneUnavailable/SceneUnavailable";
 import styles from "./Elevation.module.scss";
 
 interface ElevationProps {
@@ -11,6 +15,26 @@ interface ElevationProps {
   colourHex: string;
   stale: boolean;
   onSelectRun: (id: string) => void;
+}
+
+type View = "2d" | "3d";
+
+const VIEW_OPTIONS: Option<View>[] = [
+  { value: "2d", label: "2D plan" },
+  { value: "3d", label: "3D view" },
+];
+
+// three.js is large, so it's only downloaded for people who open the 3D view.
+const FenceScene = dynamic(
+  () =>
+    import("../FenceScene/FenceScene")
+      .then((scene) => scene.FenceScene)
+      .catch(() => SceneUnavailable),
+  { ssr: false, loading: SceneLoading },
+);
+
+function SceneLoading() {
+  return <div className={styles.loading}>Loading 3D view…</div>;
 }
 
 export function Elevation({
@@ -26,9 +50,18 @@ export function Elevation({
     layouts.findIndex((layout) => layout.runId === selectedRunId),
   );
   const layout = layouts[index];
+  const [view, setView] = useState<View>("2d");
 
   return (
     <div className={styles.elevation}>
+      <OptionGroup
+        legend="View"
+        name="preview-view"
+        columns="row"
+        value={view}
+        options={VIEW_OPTIONS}
+        onChange={setView}
+      />
       {layouts.length > 1 && (
         <OptionGroup
           legend="Run to show"
@@ -42,24 +75,44 @@ export function Elevation({
           onChange={onSelectRun}
         />
       )}
-      <div
-        className={stale ? styles.staleScroller : styles.scroller}
-        role="group"
-        aria-label="Fence drawing. Scrolls sideways on long runs."
-        tabIndex={0}
-      >
-        <ElevationDrawing
-          design={design}
-          layout={layout}
-          index={index}
-          colourHex={colourHex}
-        />
-      </div>
-      <p className={styles.note}>
-        Drawn to scale from the quote.
-        {layout.sharesCorner &&
-          " The hollow post is shared with the previous run."}
-      </p>
+      {view === "2d" ? (
+        <>
+          <div
+            className={stale ? styles.staleScroller : styles.scroller}
+            role="group"
+            aria-label="Fence drawing. Scrolls sideways on long runs."
+            tabIndex={0}
+          >
+            <ElevationDrawing
+              design={design}
+              layout={layout}
+              index={index}
+              colourHex={colourHex}
+            />
+          </div>
+          <p className={styles.note}>
+            Drawn to scale from the quote.
+            {layout.sharesCorner &&
+              " The hollow post is shared with the previous run."}
+          </p>
+        </>
+      ) : (
+        <>
+          <div className={stale ? styles.stale : undefined}>
+            <FenceScene
+              design={design}
+              layout={layout}
+              colourHex={colourHex}
+              label={describeElevation(layout, index)}
+            />
+          </div>
+          <p className={styles.note}>
+            Drag sideways to rotate. Measurements are on the 2D plan.
+            {layout.sharesCorner &&
+              " The see-through post is shared with the previous run."}
+          </p>
+        </>
+      )}
     </div>
   );
 }

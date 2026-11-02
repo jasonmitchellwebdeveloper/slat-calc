@@ -18,6 +18,7 @@ Specs and prices are illustrative. This is a portfolio project, not affiliated w
 - **Height solver:** turns a target height into the three closest builds that can actually be made from whole slats.
 - **Run builder:** multiple runs, shared corner posts, a gate at the end of a run, and in-ground or base-plate mounting. Enter measurements in millimetres or metres.
 - **Live drawing:** a to-scale SVG elevation, built from the same layout data as the bill of materials so the two can't disagree.
+- **Optional 3D view:** a three.js model of the selected run, derived from the same geometry, that you can rotate by drag or with buttons. It's downloaded only when someone opens it.
 - **Cut optimiser:** packs every cut into 5800 mm stock lengths, and reports lengths to order, waste and the cut pattern for each.
 - **Tiered pricing:** an account contract price wins over the trade tier, which wins over retail.
 - **Quote API:** a typed payload validated in the browser and again on the server, which also recalculates the prices so a tampered request is rejected.
@@ -43,6 +44,8 @@ Other deliberate choices:
 - **Only the design is stored in state.** Everything else is derived, so a figure can't go stale.
 - **A shared link is untrusted input.** It's size-capped, schema-checked and run through the engine, and a bad one falls back to the starting design with a notice.
 - **The page is statically prerendered.** Only `/api/quote` runs on the server.
+- **SVG for the plan, WebGL for 3D.** SVG is prerendered, prints sharply and suits a dimensioned drawing. three.js adds 134 KB gzipped, so it's lazy-loaded and normal visits never pay for it. It renders only when something changes, with no animation loop.
+- **Slat gaps are a mipmapped texture in 3D.** Drawn as geometry, gaps thinner than a pixel alias into speckle. A texture averages them into a smooth tone while wide gaps still show as lines.
 
 ## How the numbers work
 
@@ -93,8 +96,8 @@ Bay width is floored to whole millimetres so every slat in a run matches. Any le
 
 ## Quality
 
-- **262 unit and API tests** (Vitest), with the engine written test-first against hand-worked numbers.
-- **9 browser tests** (Playwright): the reference run, axe across five page states, a keyboard-only quote request, and focus staying clear of the sticky bar.
+- **282 unit and API tests** (Vitest), with the engine written test-first against hand-worked numbers.
+- **18 browser tests** (Playwright): the reference run, axe across six page states, a keyboard-only quote request, focus staying clear of the sticky bar, and the 3D view's lazy loading, controls and fallbacks.
 - **CI** runs formatting, lint, types and both test suites on every push.
 - **Lighthouse mobile on production, three runs:** Performance 99 to 100, Accessibility, Best Practices and SEO 100. Largest Contentful Paint 0.8 to 1.1 s, Cumulative Layout Shift 0.
 
@@ -110,6 +113,7 @@ This is a demo, and these are the things a production version would need to addr
 - **Contract prices reach the browser**, because the engine runs there. Real ones would need to stay on the server.
 - **Nothing is stored or sent.** A quote reference is generated and returned, then forgotten.
 - **Level ground and straight runs.** There's no stepping on slopes, and gates only go at the end of a run.
+- **3D shows one run at a time**, because the design doesn't record which way a corner turns. It has no dimensions, which stay on the 2D plan, and a very long run looks small because zooming is off so the page can scroll.
 - **Colour doesn't change SKUs or prices**, which a real catalogue would.
 - **Waste counts offcuts only**, not the metal lost to the saw.
 - **A shared link is read in the browser**, so it shows the starting design for a moment before swapping in. That keeps normal visits static and fast.

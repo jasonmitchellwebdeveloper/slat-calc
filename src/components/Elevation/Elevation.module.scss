@@ -10,8 +10,20 @@
   border-radius: var(--radius);
 }
 
-.staleScroller {
+.staleScroller,
+.stale {
   opacity: 0.45;
+}
+
+// Matches the canvas, so nothing moves when the 3D view arrives.
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  background: var(--colour-page);
+  color: var(--colour-muted);
 }
 
 .note {

@@ -160,3 +160,104 @@ test("a copied design survives a reload", async ({ page }) => {
   await page.reload();
   await expect(length).toHaveValue("4200");
 });
+
+test.describe("3D view", () => {
+  const open3d = async (page: Page) => {
+    await page.getByRole("radio", { name: "3D view" }).check();
+    const canvas = page.getByRole("img", { name: /^Run 1: 6000 mm/ });
+    await expect(canvas).toBeVisible();
+    return page.locator("canvas");
+  };
+
+  test("downloads three.js only when it's chosen", async ({ page }) => {
+    const threeLoaded = () => {
+      let found = false;
+      page.on("response", async (response) => {
+        if (!response.url().endsWith(".js")) return;
+        const body = await response.text().catch(() => "");
+        if (body.includes("WebGLRenderer")) found = true;
+      });
+      return () => found;
+    };
+    const wasLoaded = threeLoaded();
+    await page.reload();
+    await expect(total(page)).toContainText("$1,521.85");
+    await page.waitForLoadState("networkidle");
+    expect(wasLoaded()).toBe(false);
+
+    await open3d(page);
+    await page.waitForLoadState("networkidle");
+    await expect.poll(wasLoaded).toBe(true);
+  });
+
+  test("draws the fence and redraws it for a new colour", async ({ page }) => {
+    const canvas = await open3d(page);
+    const charcoal = await canvas.screenshot();
+    await page.getByRole("radio", { name: "Woodgrain" }).check();
+    const woodgrain = await canvas.screenshot();
+    expect(woodgrain.equals(charcoal)).toBe(false);
+  });
+
+  test("a keyboard can rotate and reset the view", async ({ page }) => {
+    const canvas = await open3d(page);
+    const start = await canvas.screenshot();
+    const rotateLeft = page.getByRole("button", { name: "Rotate left" });
+    await rotateLeft.focus();
+    await page.keyboard.press("Enter");
+    const rotated = await canvas.screenshot();
+    expect(rotated.equals(start)).toBe(false);
+
+    await tabTo(page, page.getByRole("button", { name: "Reset view" }));
+    await page.keyboard.press("Enter");
+    const reset = await canvas.screenshot();
+    expect(reset.equals(rotated)).toBe(false);
+  });
+
+  test("lets touch users scroll the page past the canvas", async ({ page }) => {
+    const canvas = await open3d(page);
+    await expect(canvas).toHaveCSS("touch-action", "pan-y");
+  });
+
+  test("has no axe violations", async ({ page }) => {
+    await open3d(page);
+    await expectNoAxeViolations(page);
+  });
+
+  test("switching back and forth raises no errors", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
+    page.on("pageerror", (error) => errors.push(error.message));
+    for (let i = 0; i < 6; i++) {
+      await open3d(page);
+      await page.getByRole("radio", { name: "2D plan" }).check();
+      await expect(page.locator("canvas")).toHaveCount(0);
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test("explains itself when WebGL isn't available", async ({ page }) => {
+    await page.addInitScript(() => {
+      HTMLCanvasElement.prototype.getContext = () => null;
+    });
+    await page.reload();
+    await page.getByRole("radio", { name: "3D view" }).check();
+    await expect(page.getByText("3D view isn't available")).toBeVisible();
+    await page.getByRole("radio", { name: "2D plan" }).check();
+    await expect(page.getByRole("img")).toBeVisible();
+  });
+
+  test("explains itself when the download fails", async ({ page }) => {
+    await page.route(/\.js$/, (route) => route.abort());
+    await page.getByRole("radio", { name: "3D view" }).check();
+    await expect(page.getByText("3D view isn't available")).toBeVisible();
+  });
+
+  test("is left out of the printed plan", async ({ page }) => {
+    await open3d(page);
+    await page.emulateMedia({ media: "print" });
+    await expect(page.locator("canvas")).toBeHidden();
+    await expect(page.getByRole("img", { name: /^Run 1/ })).toBeVisible();
+  });
+});

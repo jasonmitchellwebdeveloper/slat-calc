@@ -1,5 +1,9 @@
 import type { RunLayout } from "@/engine/bom";
-import { POST_WIDTH_MM, SLAT_THICKNESS_MM } from "@/engine/catalogue";
+import {
+  POST_WIDTH_MM,
+  SLAT_FACE_MM,
+  SLAT_THICKNESS_MM,
+} from "@/engine/catalogue";
 import type { Design } from "@/engine/types";
 import {
   buildElevation,
@@ -32,6 +36,9 @@ export interface FenceModel {
   spanMm: number;
   heightMm: number;
   slats: Box[];
+  panels: Box[]; // one per bay, covering its slats, for drawing
+  slatPeriodMm: number; // slat face plus gap
+  slatFaceFraction: number; // share of each period that's slat
   posts: FencePost[];
   basePlates: Box[];
   gate?: FenceGate;
@@ -86,10 +93,26 @@ export function buildFenceModel(design: Design, layout: RunLayout): FenceModel {
     };
   }
 
+  const slats = drawing.slats.map((slat) => toBox(slat, SLAT_THICKNESS_MM));
+  const lowestSlat = Math.min(...slats.map((s) => s.y - s.height / 2));
+  const panelHeight = layout.panelHeightMm;
+  const bayCentres = [...new Set(slats.map((slat) => slat.x))];
+  const slatPeriodMm = SLAT_FACE_MM + design.gapMm;
+
   return {
     spanMm: toX - fromX,
     heightMm: drawing.fenceHeightMm,
-    slats: drawing.slats.map((slat) => toBox(slat, SLAT_THICKNESS_MM)),
+    slats,
+    panels: bayCentres.map((x) => ({
+      x,
+      y: lowestSlat + panelHeight / 2,
+      z: 0,
+      width: layout.slatCutMm,
+      height: panelHeight,
+      depth: SLAT_THICKNESS_MM,
+    })),
+    slatPeriodMm,
+    slatFaceFraction: SLAT_FACE_MM / slatPeriodMm,
     posts: posts.map((post) => ({
       ...toBox(post, POST_WIDTH_MM),
       shared: post.shared,
