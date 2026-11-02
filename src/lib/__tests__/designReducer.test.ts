@@ -271,3 +271,42 @@ describe("designReducer: panel options", () => {
     );
   });
 });
+
+describe("designReducer: frame colour", () => {
+  it("follows the infill by default", () => {
+    expect(initialPanelDesign.frameColour).toBeNull();
+  });
+
+  it("starts a separate frame colour from the current infill", () => {
+    const panel: PanelDesign = { ...initialPanelDesign, colour: "terracotta" };
+    const next = designReducer(panel, {
+      type: "setFrameMatchesInfill",
+      matches: false,
+    }) as PanelDesign;
+    expect(next.frameColour).toBe("terracotta");
+  });
+
+  it("goes back to following the infill", () => {
+    const panel: PanelDesign = {
+      ...initialPanelDesign,
+      frameColour: "slate-grey",
+    };
+    const next = designReducer(panel, {
+      type: "setFrameMatchesInfill",
+      matches: true,
+    }) as PanelDesign;
+    expect(next.frameColour).toBeNull();
+  });
+
+  it("keeps a chosen frame colour when the infill changes", () => {
+    const panel: PanelDesign = {
+      ...initialPanelDesign,
+      frameColour: "slate-grey",
+    };
+    const next = designReducer(panel, {
+      type: "setColour",
+      colour: "off-white",
+    }) as PanelDesign;
+    expect(next.frameColour).toBe("slate-grey");
+  });
+});

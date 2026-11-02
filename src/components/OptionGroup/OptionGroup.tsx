@@ -12,13 +12,14 @@ interface OptionGroupProps<T extends string> {
   name: string;
   options: Option<T>[];
   value: T;
-  columns?: 1 | 2 | "row";
+  columns?: 1 | 2 | "half" | "row";
   onChange: (value: T) => void;
 }
 
 const LAYOUT_CLASSES = {
   1: styles.oneColumn,
   2: styles.twoColumns,
+  half: styles.half,
   row: styles.row,
 };
 

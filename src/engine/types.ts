@@ -31,7 +31,7 @@ export interface PanelDesign {
   postLengthMm: number | null; // null uses the recommended length
   profile: PanelProfile;
   colour: string; // infill sheets
-  frameColour: string; // posts and rails
+  frameColour: string | null; // posts and rails, null follows the infill
   concrete: ConcreteType;
   mounting: Mounting;
   runs: Run[];

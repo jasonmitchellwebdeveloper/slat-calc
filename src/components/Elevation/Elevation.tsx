@@ -60,7 +60,7 @@ export function Elevation({
       <OptionGroup
         legend="View"
         name="preview-view"
-        columns="row"
+        columns="half"
         value={view}
         options={VIEW_OPTIONS}
         onChange={setView}

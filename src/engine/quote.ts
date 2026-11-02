@@ -101,7 +101,12 @@ function toQuoteDesign(design: Design, fenceHeightMm: number): Quote["design"] {
       runs,
     };
   }
-  return { ...design, runs };
+  // An ERP needs the colour itself, not a note that it follows another field.
+  return {
+    ...design,
+    frameColour: design.frameColour ?? design.colour,
+    runs,
+  };
 }
 
 export function buildQuote(

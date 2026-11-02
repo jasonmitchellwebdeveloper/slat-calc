@@ -175,7 +175,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
             <OptionGroup
               legend="Fence type"
               name="system"
-              columns="row"
+              columns="half"
               options={SYSTEM_OPTIONS}
               value={design.system}
               onChange={(system) => dispatch({ type: "setSystem", system })}
@@ -185,7 +185,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
             <OptionGroup
               legend="Enter measurements in"
               name="unit"
-              columns="row"
+              columns="half"
               options={UNIT_OPTIONS}
               value={unit}
               onChange={setUnit}
@@ -213,7 +213,9 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
                 legend={
                   design.system === "slat"
                     ? "Slat and post finish"
-                    : "Infill sheets"
+                    : design.frameColour === null
+                      ? "Sheets, posts and rails"
+                      : "Infill sheets"
                 }
                 name="colour"
                 columns={2}
@@ -226,8 +228,23 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
                 onChange={(colour) => dispatch({ type: "setColour", colour })}
               />
               {design.system === "panel" && (
+                <label className={styles.toggle}>
+                  <input
+                    type="checkbox"
+                    checked={design.frameColour === null}
+                    onChange={(event) =>
+                      dispatch({
+                        type: "setFrameMatchesInfill",
+                        matches: event.target.checked,
+                      })
+                    }
+                  />
+                  Posts and rails match the infill
+                </label>
+              )}
+              {design.system === "panel" && design.frameColour !== null && (
                 <OptionGroup
-                  legend="Posts and rails"
+                  legend="Posts and rails colour"
                   name="frame-colour"
                   columns={2}
                   options={PANEL_COLOUR_OPTIONS}
@@ -255,7 +272,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
               <OptionGroup
                 legend="How the posts are fixed"
                 name="mounting"
-                columns={2}
+                columns="half"
                 options={MOUNTING_OPTIONS}
                 value={design.mounting}
                 onChange={(mounting) =>
@@ -266,7 +283,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
                 <OptionGroup
                   legend="Concrete"
                   name="concrete"
-                  columns="row"
+                  columns="half"
                   options={CONCRETE_OPTIONS}
                   value={design.concrete}
                   onChange={(concrete) =>

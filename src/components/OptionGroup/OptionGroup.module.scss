@@ -26,6 +26,18 @@
   }
 }
 
+// Two equal columns at every width, for options short enough to fit. An odd
+// count gives the first one the full width, so no gap is left beside the last.
+.half {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+
+  > :first-child:nth-last-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
 .row {
   display: flex;
   flex-wrap: wrap;

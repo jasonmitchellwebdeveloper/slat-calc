@@ -383,11 +383,55 @@ test.describe("steel panel fence", () => {
     expect(tampered.status()).toBe(422);
   });
 
+  test("posts and rails follow the infill until told otherwise", async ({
+    page,
+  }) => {
+    await toPanel(page);
+    const match = page.getByLabel("Posts and rails match the infill");
+    const frame = page.getByRole("group", { name: "Posts and rails colour" });
+    await expect(match).toBeChecked();
+    await expect(frame).toHaveCount(0);
+    await page.getByRole("radio", { name: "Off White" }).check();
+    await expect(page.locator("#results caption")).toContainText(
+      "Off White finish",
+    );
+
+    await match.uncheck();
+    await expect(frame).toBeVisible();
+    await frame.getByRole("radio", { name: "Terracotta" }).check();
+    await expect(page.locator("#results caption")).toContainText(
+      "Off White infill with Terracotta frame",
+    );
+
+    await match.check();
+    await expect(frame).toHaveCount(0);
+    await expect(page.locator("#results caption")).toContainText(
+      "Off White finish",
+    );
+  });
+
+  test("size options fill the card in two columns", async ({ page }) => {
+    await toPanel(page);
+    const group = page.getByRole("group", { name: "Panel height" });
+    const boxes = await group
+      .locator("label")
+      .evaluateAll((labels) =>
+        labels.map((l) => l.getBoundingClientRect().toJSON()),
+      );
+    expect(boxes).toHaveLength(4);
+    expect(boxes[0].y).toBe(boxes[1].y);
+    expect(boxes[2].y).toBe(boxes[3].y);
+    expect(boxes[0].width).toBe(boxes[1].width);
+    const inner = await group.evaluate((g) => g.getBoundingClientRect().width);
+    expect(boxes[0].width).toBeGreaterThan(inner * 0.45);
+  });
+
   test("draws in 3D, and redraws for a new frame colour", async ({ page }) => {
     await toPanel(page);
     await page.getByRole("radio", { name: "3D view" }).check();
     const canvas = page.locator("canvas");
     await expect(canvas).toBeVisible();
+    await page.getByLabel("Posts and rails match the infill").uncheck();
     const before = await canvas.screenshot();
     await page.getByRole("radio", { name: "Terracotta" }).nth(1).check();
     const after = await canvas.screenshot();

@@ -278,6 +278,14 @@ describe("steel panel quotes", () => {
     expect(verifyQuote(changed)).toBe(false);
   });
 
+  it("spells out the frame colour when it follows the infill", () => {
+    const q = buildQuote({ ...panel, frameColour: null }, RETAIL, NOW);
+    if (q.design.system !== "panel") throw new Error("expected panel");
+    expect(q.design.frameColour).toBe("mist-grey");
+    expect(QuoteSchema.safeParse(q).success).toBe(true);
+    expect(verifyQuote(q)).toBe(true);
+  });
+
   it("rejects a slat colour on a panel fence", () => {
     const q = buildQuote(panel, RETAIL, NOW);
     const bad = { ...q, design: { ...q.design, colour: "woodgrain" } };

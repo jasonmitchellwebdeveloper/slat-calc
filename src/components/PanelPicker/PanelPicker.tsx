@@ -51,7 +51,7 @@ export function PanelPicker({ design, dispatch }: PanelPickerProps) {
       <OptionGroup
         legend="Panel height"
         name="panel-height"
-        columns="row"
+        columns="half"
         options={HEIGHT_OPTIONS}
         value={String(design.fenceHeightMm)}
         onChange={(value) =>
@@ -61,7 +61,7 @@ export function PanelPicker({ design, dispatch }: PanelPickerProps) {
       <OptionGroup
         legend="Sleepers under each panel"
         name="sleepers"
-        columns="row"
+        columns="half"
         options={SLEEPER_OPTIONS}
         value={String(design.sleepers)}
         onChange={(value) =>
@@ -75,7 +75,7 @@ export function PanelPicker({ design, dispatch }: PanelPickerProps) {
         <OptionGroup
           legend="Post length"
           name="post-length"
-          columns="row"
+          columns="half"
           options={postOptions}
           value={
             design.postLengthMm === null
@@ -96,7 +96,7 @@ export function PanelPicker({ design, dispatch }: PanelPickerProps) {
       <OptionGroup
         legend="Sheet profile"
         name="profile"
-        columns="row"
+        columns="half"
         options={PROFILE_OPTIONS}
         value={design.profile}
         onChange={(profile) => dispatch({ type: "setProfile", profile })}

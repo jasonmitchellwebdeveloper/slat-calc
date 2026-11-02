@@ -148,6 +148,14 @@ describe("steel panel links", () => {
     ],
   };
 
+  it("round-trips a frame that follows the infill", () => {
+    const matching: PanelDesign = { ...panel, frameColour: null };
+    expect(readDesignFromSearch(designSearch(matching))).toEqual({
+      design: matching,
+      linkInvalid: false,
+    });
+  });
+
   it("round-trips exactly", () => {
     expect(readDesignFromSearch(designSearch(panel))).toEqual({
       design: panel,

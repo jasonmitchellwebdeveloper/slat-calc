@@ -36,7 +36,7 @@ export const initialPanelDesign: PanelDesign = {
   postLengthMm: null,
   profile: "sawtooth",
   colour: "mist-grey",
-  frameColour: "mist-grey",
+  frameColour: null,
   concrete: "post-mix",
   mounting: "in-ground",
   runs: [{ id: "run-1", lengthMm: 6000, startsAtCorner: false }],
@@ -51,6 +51,7 @@ export type DesignAction =
   | { type: "setPostLength"; mm: number | null }
   | { type: "setProfile"; profile: PanelProfile }
   | { type: "setFrameColour"; colour: string }
+  | { type: "setFrameMatchesInfill"; matches: boolean }
   | { type: "setConcrete"; concrete: ConcreteType }
   | { type: "setTargetHeight"; mm: number }
   | { type: "selectHeight"; gapMm: GapMm; slatCount: number }
@@ -123,6 +124,12 @@ export function designReducer(design: Design, action: DesignAction): Design {
     case "setFrameColour":
       if (design.system !== "panel") return design;
       return { ...design, frameColour: action.colour };
+    case "setFrameMatchesInfill":
+      if (design.system !== "panel") return design;
+      return {
+        ...design,
+        frameColour: action.matches ? null : design.colour,
+      };
     case "setConcrete":
       if (design.system !== "panel") return design;
       return { ...design, concrete: action.concrete };

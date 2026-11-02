@@ -39,7 +39,7 @@ export const designSchema = z.discriminatedUnion("system", [
     postLengthMm: z.nullable(z.int()),
     profile: z.enum(["sawtooth", "trimline"]),
     colour: panelColour,
-    frameColour: panelColour,
+    frameColour: z.nullable(panelColour),
     concrete: z.enum(["post-mix", "rapid-set", "none"]),
     mounting,
     runs,

@@ -18,10 +18,14 @@ export function fenceColours(design: Design): FenceColours {
     };
   }
   const infill = PANEL_COLOURS.find((c) => c.id === design.colour);
-  const frame = PANEL_COLOURS.find((c) => c.id === design.frameColour);
+  const frame =
+    PANEL_COLOURS.find((c) => c.id === design.frameColour) ?? infill;
   return {
     infillHex: infill?.hex ?? "",
     frameHex: frame?.hex ?? "",
-    finish: `${infill?.name} infill with ${frame?.name} frame`,
+    finish:
+      frame === infill
+        ? `${infill?.name} finish`
+        : `${infill?.name} infill with ${frame?.name} frame`,
   };
 }
