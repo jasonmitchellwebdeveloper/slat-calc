@@ -1,0 +1,42 @@
+@use "../../styles/mixins" as *;
+
+.request {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+
+  p {
+    margin: 0;
+  }
+}
+
+.sent {
+  font-weight: 600;
+}
+
+.failed {
+  color: var(--colour-error);
+  font-weight: 600;
+}
+
+.payload {
+  min-width: 0;
+
+  summary {
+    @include tap-target;
+    display: flex;
+    align-items: center;
+    color: var(--colour-accent);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  pre {
+    overflow-x: auto;
+    margin: 0;
+    padding: var(--space-2);
+    border-radius: var(--radius);
+    background: var(--colour-page);
+    font-size: 0.75rem;
+  }
+}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Design } from "@/engine/types";
 import { designSearch } from "@/lib/designUrl";
+import { Button } from "../Button/Button";
 import styles from "./CopyLinkButton.module.scss";
 
 interface CopyLinkButtonProps {
@@ -34,14 +35,9 @@ export function CopyLinkButton({ design, disabled }: CopyLinkButtonProps) {
 
   return (
     <div className={styles.copy}>
-      <button
-        type="button"
-        className={styles.button}
-        disabled={disabled}
-        onClick={copy}
-      >
+      <Button disabled={disabled} onClick={copy}>
         Copy link to this design
-      </button>
+      </Button>
       {/* Always rendered, so screen readers announce the message when it fills. */}
       <p className={styles.message} role="status">
         {message}

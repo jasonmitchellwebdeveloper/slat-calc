@@ -21,6 +21,7 @@ import { Elevation } from "../Elevation/Elevation";
 import { HeightPicker } from "../HeightPicker/HeightPicker";
 import { OptionGroup, type Option } from "../OptionGroup/OptionGroup";
 import { PriceSummary } from "../PriceSummary/PriceSummary";
+import { QuoteRequest } from "../QuoteRequest/QuoteRequest";
 import { RunBuilder } from "../RunBuilder/RunBuilder";
 import { SummaryBar } from "../SummaryBar/SummaryBar";
 import styles from "./Calculator.module.scss";
@@ -212,7 +213,17 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
                 value={priceList}
                 onChange={setPriceList}
               />
-              <CopyLinkButton design={lastValidDesign} disabled={!result.ok} />
+              <div className={styles.actions}>
+                <QuoteRequest
+                  design={lastValidDesign}
+                  pricing={pricing}
+                  disabled={!result.ok}
+                />
+                <CopyLinkButton
+                  design={lastValidDesign}
+                  disabled={!result.ok}
+                />
+              </div>
               {!result.ok && (
                 <p className={styles.notice}>
                   Check your entries. These figures are from your last valid

@@ -1,0 +1,29 @@
+@use "../../styles/mixins" as *;
+
+.primary,
+.secondary {
+  @include tap-target;
+  width: 100%;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--colour-accent);
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    border-color: var(--colour-border);
+    background: var(--colour-surface);
+    color: var(--colour-muted);
+    cursor: not-allowed;
+  }
+}
+
+.primary {
+  background: var(--colour-accent);
+  color: var(--colour-on-accent);
+}
+
+.secondary {
+  background: var(--colour-surface);
+  color: var(--colour-accent);
+}
