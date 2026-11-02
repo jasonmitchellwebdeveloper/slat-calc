@@ -14,6 +14,7 @@ export interface PricedLine {
   qty: number;
   unitPriceCents: number;
   lineTotalCents: number;
+  contractPrice: boolean; // true when the account's contract set the price
 }
 
 export interface Totals {
@@ -78,6 +79,8 @@ export function priceBom(
       qty,
       unitPriceCents,
       lineTotalCents: qty * unitPriceCents,
+      contractPrice:
+        ACCOUNT_PRICES[ctx.accountCode ?? ""]?.[product.sku] !== undefined,
     };
   });
 

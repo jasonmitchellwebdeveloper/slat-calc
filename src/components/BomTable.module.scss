@@ -1,0 +1,57 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th,
+  td {
+    padding: var(--space-2) 0.25rem;
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th:first-child {
+    padding-left: 0;
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: 0;
+  }
+
+  tbody th {
+    font-weight: 400;
+  }
+}
+
+.table .number {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.caption {
+  margin-bottom: 0.25rem;
+  text-align: left;
+}
+
+.title,
+.note,
+.contract {
+  display: block;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.note {
+  color: var(--colour-muted);
+}
+
+.contract {
+  color: var(--colour-accent);
+  font-weight: 600;
+}

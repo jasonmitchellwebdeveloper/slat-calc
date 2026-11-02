@@ -1,0 +1,29 @@
+.summary {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+.total {
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--colour-border);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.saving {
+  color: var(--colour-accent);
+  font-weight: 600;
+}

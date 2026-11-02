@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculate } from "../calculate";
+import { PRODUCTS } from "../catalogue";
+import { DEMO_ACCOUNT_CODE } from "../pricing";
 import type { Design } from "../types";
 
 const design: Design = {
@@ -59,5 +61,24 @@ describe("calculate", () => {
       expect(result.error).toMatch(/Target height/);
       expect(result.heightOptions).toEqual([]);
     }
+  });
+});
+
+describe("contract price flag", () => {
+  it("marks only the lines priced from an account's contract", () => {
+    const result = calculate(design, {
+      tier: "trade",
+      accountCode: DEMO_ACCOUNT_CODE,
+    });
+    if (!result.ok) throw new Error(result.error);
+    const contract = result.priced.lines.filter((l) => l.contractPrice);
+    expect(contract.map((l) => l.sku)).toEqual([PRODUCTS.slat.sku]);
+    expect(contract[0].unitPriceCents).toBe(3150);
+  });
+
+  it("marks nothing without an account", () => {
+    const result = calculate(design, { tier: "trade" });
+    if (!result.ok) throw new Error(result.error);
+    expect(result.priced.lines.some((l) => l.contractPrice)).toBe(false);
   });
 });

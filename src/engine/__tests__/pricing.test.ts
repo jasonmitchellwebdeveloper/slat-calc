@@ -102,6 +102,7 @@ describe("priceBom", () => {
           qty: 25,
           unitPriceCents: 3450,
           lineTotalCents: 86250,
+          contractPrice: false,
         },
         {
           sku: channel.sku,
@@ -109,6 +110,7 @@ describe("priceBom", () => {
           qty: 3,
           unitPriceCents: 2450,
           lineTotalCents: 7350,
+          contractPrice: false,
         },
         {
           sku: post2400.sku,
@@ -116,6 +118,7 @@ describe("priceBom", () => {
           qty: 5,
           unitPriceCents: 4200,
           lineTotalCents: 21000,
+          contractPrice: false,
         },
         {
           sku: cap.sku,
@@ -123,6 +126,7 @@ describe("priceBom", () => {
           qty: 5,
           unitPriceCents: 380,
           lineTotalCents: 1900,
+          contractPrice: false,
         },
         {
           sku: fixings.sku,
@@ -130,6 +134,7 @@ describe("priceBom", () => {
           qty: 4,
           unitPriceCents: 990,
           lineTotalCents: 3960,
+          contractPrice: false,
         },
       ],
       totals: { exGstCents: 120460, gstCents: 12046, incGstCents: 132506 },

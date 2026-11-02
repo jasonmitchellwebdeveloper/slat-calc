@@ -1,18 +1,33 @@
 "use client";
 
-import { useMemo, useReducer } from "react";
+import { useMemo, useReducer, useState } from "react";
 import { COLOURS } from "@/engine/catalogue";
 import { calculate } from "@/engine/calculate";
-import type { PriceContext } from "@/engine/pricing";
+import { DEMO_ACCOUNT_CODE, type PriceContext } from "@/engine/pricing";
 import type { Mounting } from "@/engine/types";
+import { BomTable } from "./BomTable";
 import styles from "./Calculator.module.scss";
+import { CutList } from "./CutList";
 import { designReducer, initialDesign } from "./designReducer";
 import { HeightPicker } from "./HeightPicker";
 import { OptionGroup, type Option } from "./OptionGroup";
+import { PriceSummary } from "./PriceSummary";
 import { RunBuilder } from "./RunBuilder";
 import { SummaryBar } from "./SummaryBar";
 
-const INITIAL_PRICING: PriceContext = { tier: "retail" };
+type PriceList = "retail" | "trade" | "account";
+
+const PRICE_CONTEXTS: Record<PriceList, PriceContext> = {
+  retail: { tier: "retail" },
+  trade: { tier: "trade" },
+  account: { tier: "trade", accountCode: DEMO_ACCOUNT_CODE },
+};
+
+const PRICE_LIST_OPTIONS: Option<PriceList>[] = [
+  { value: "retail", label: "Retail" },
+  { value: "trade", label: "Trade" },
+  { value: "account", label: `Demo account (${DEMO_ACCOUNT_CODE})` },
+];
 
 const COLOUR_OPTIONS: Option<string>[] = COLOURS.map((colour) => ({
   value: colour.id,
@@ -27,7 +42,19 @@ const MOUNTING_OPTIONS: Option<Mounting>[] = [
 
 export function Calculator() {
   const [design, dispatch] = useReducer(designReducer, initialDesign);
-  const result = useMemo(() => calculate(design, INITIAL_PRICING), [design]);
+  const [priceList, setPriceList] = useState<PriceList>("retail");
+  const pricing = PRICE_CONTEXTS[priceList];
+  const result = useMemo(() => calculate(design, pricing), [design, pricing]);
+
+  // While a field is half-typed the last valid figures stay on screen, dimmed.
+  // Removing them would shrink the page and move the field being typed in.
+  const [lastValidDesign, setLastValidDesign] = useState(design);
+  if (result.ok && design !== lastValidDesign) setLastValidDesign(design);
+  const shown = useMemo(
+    () => (result.ok ? result : calculate(lastValidDesign, pricing)),
+    [result, lastValidDesign, pricing],
+  );
+  const colourName = COLOURS.find((c) => c.id === lastValidDesign.colour)?.name;
 
   return (
     <>
@@ -77,15 +104,34 @@ export function Calculator() {
             aria-labelledby="step-results"
           >
             <h2 id="step-results">Results</h2>
-            {result.ok ? (
-              <p>
-                {result.layouts.reduce((sum, l) => sum + l.bays, 0)} bays,{" "}
-                {result.layouts.reduce((sum, l) => sum + l.posts, 0)} posts,{" "}
-                {result.cutPlans[0].lengths} slat lengths
-              </p>
-            ) : (
-              <p>Check the highlighted fields to see your quote.</p>
-            )}
+            <div className={styles.results}>
+              <OptionGroup
+                legend="Price list"
+                name="price-list"
+                options={PRICE_LIST_OPTIONS}
+                value={priceList}
+                onChange={setPriceList}
+              />
+              {!result.ok && (
+                <p className={styles.notice}>
+                  Check your entries. These figures are from your last valid
+                  design.
+                </p>
+              )}
+              {shown.ok && (
+                <div
+                  className={result.ok ? styles.figures : styles.staleFigures}
+                  inert={!result.ok}
+                >
+                  <PriceSummary priced={shown.priced} />
+                  <BomTable
+                    lines={shown.priced.lines}
+                    colourName={colourName ?? ""}
+                  />
+                  <CutList plans={shown.cutPlans} />
+                </div>
+              )}
+            </div>
           </section>
         </div>
       </div>
