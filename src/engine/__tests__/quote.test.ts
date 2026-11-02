@@ -48,7 +48,7 @@ function quote(d = design, ctx = RETAIL): Quote {
 describe("buildQuote", () => {
   it("builds the payload for the 6000 mm example", () => {
     const q = quote();
-    expect(q.source).toBe("slat-calculator");
+    expect(q.source).toBe("fence-calculator");
     expect(q.createdAt).toBe("2026-11-01T23:30:00.000Z");
     expect(q.customer).toEqual({ tier: "retail" });
     expect(q.design).toEqual({

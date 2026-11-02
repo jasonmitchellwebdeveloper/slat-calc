@@ -24,7 +24,7 @@ const runs = z
 
 // Shared by the browser and the server, shaped for an ERP to consume.
 export const QuoteSchema = z.object({
-  source: z.literal("slat-calculator"),
+  source: z.literal("fence-calculator"),
   createdAt: z.iso.datetime({ offset: true }),
   customer: z.object({
     tier: z.enum(["retail", "trade"]),
@@ -113,7 +113,7 @@ export function buildQuote(
   if (!result.ok) throw new RangeError(result.error);
 
   return {
-    source: "slat-calculator",
+    source: "fence-calculator",
     createdAt: now.toISOString(),
     customer: { tier: ctx.tier, accountCode: ctx.accountCode },
     design: toQuoteDesign(design, result.layouts[0].fenceHeightMm),

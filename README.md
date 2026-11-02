@@ -10,7 +10,7 @@ Specs and prices are illustrative. This is a portfolio project, not affiliated w
 
 <p>
   <img src=".github/screenshot-phone.png" alt="The calculator on a phone, showing a 3D view of a fence run with a gate above the inputs, with the total pinned to the bottom of the screen" width="260">
-  <img src=".github/screenshot-desktop.png" alt="The calculator on desktop, with the inputs on the left and the 3D view and results on the right" width="520">
+  <img src=".github/screenshot-desktop.png" alt="The steel panel calculator on desktop, with the inputs on the left and the 2D plan and results on the right" width="520">
 </p>
 
 ## Features
