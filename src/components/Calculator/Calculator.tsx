@@ -42,8 +42,8 @@ const PRICE_LIST_OPTIONS: Option<PriceList>[] = [
 ];
 
 const UNIT_OPTIONS: Option<Unit>[] = [
-  { value: "m", label: "Metres" },
   { value: "mm", label: "Millimetres" },
+  { value: "m", label: "Metres" },
 ];
 
 const COLOUR_OPTIONS: Option<string>[] = COLOURS.map((colour) => ({
@@ -92,7 +92,7 @@ interface CalculatorFormProps {
 function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
   const [design, dispatch] = useReducer(designReducer, startDesign);
   const [priceList, setPriceList] = useState<PriceList>("retail");
-  const [unit, setUnit] = useState<Unit>("m");
+  const [unit, setUnit] = useState<Unit>("mm");
   const pricing = PRICE_CONTEXTS[priceList];
   const result = useMemo(() => calculate(design, pricing), [design, pricing]);
 
