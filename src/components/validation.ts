@@ -9,14 +9,37 @@ import { MIN_FENCE_HEIGHT_MM, solveHeight } from "@/engine/height";
 
 export type Validate = (value: number) => string | undefined;
 
+const LENGTH_PATTERN = /^(\d*)(\.?)(\d*)\s*(mm|m)?$/i;
+const MM_PER_M = 1000;
+const MM_DIGITS = 3; // decimal places in a metre value that are whole mm
+
+// Reads metres or millimetres. A field's valid ranges in each unit don't
+// overlap, so a suffix, a decimal point or the size of the number settles which.
 // NaN stands in for anything half-typed, and the engine rejects it.
-export function parseWholeNumber(text: string): number {
-  const trimmed = text.trim();
-  return /^\d+$/.test(trimmed) ? Number(trimmed) : Number.NaN;
+export function parseLengthMm(text: string, maxMm: number): number {
+  const match = LENGTH_PATTERN.exec(text.trim());
+  if (!match) return Number.NaN;
+
+  const [, whole, point, fraction, suffix] = match;
+  if (whole === "" && fraction === "") return Number.NaN;
+
+  const unit = suffix?.toLowerCase();
+  const inMetres =
+    unit === "m" ||
+    (unit !== "mm" && (point !== "" || Number(whole) <= maxMm / MM_PER_M));
+
+  // Digit by digit, so 2.4 is exactly 2400 and not a floating-point near miss.
+  const significant = fraction.replace(/0+$/, "");
+  if (inMetres) {
+    if (significant.length > MM_DIGITS) return Number.NaN;
+    const mm = significant.padEnd(MM_DIGITS, "0");
+    return Number(whole) * MM_PER_M + Number(mm);
+  }
+  return significant === "" ? Number(whole) : Number.NaN;
 }
 
 function rangeMessage(min: number, max: number): string {
-  return `Enter a whole number from ${min} to ${max}.`;
+  return `Enter ${min / MM_PER_M} to ${max / MM_PER_M} m, or ${min} to ${max} mm.`;
 }
 
 function rangeError(value: number, min: number, max: number) {

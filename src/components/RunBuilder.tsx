@@ -1,11 +1,6 @@
 import { useRef, type Dispatch } from "react";
 import { flushSync } from "react-dom";
-import {
-  MAX_GATE_WIDTH_MM,
-  MAX_RUN_MM,
-  MIN_GATE_WIDTH_MM,
-  MIN_RUN_MM,
-} from "@/engine/catalogue";
+import { MAX_GATE_WIDTH_MM, MAX_RUN_MM } from "@/engine/catalogue";
 import type { Run } from "@/engine/types";
 import type { DesignAction } from "./designReducer";
 import { NumberField } from "./NumberField";
@@ -70,9 +65,10 @@ export function RunBuilder({ runs, dispatch, onSelectRun }: RunBuilderProps) {
                 </div>
                 <NumberField
                   id={`${run.id}-length`}
-                  label="Fence length (mm)"
-                  hint={`${MIN_RUN_MM} to ${MAX_RUN_MM} mm, not including any gate`}
+                  label="Fence length"
+                  hint="In metres or mm, e.g. 6 or 6000, not including any gate"
                   value={run.lengthMm}
+                  maxMm={MAX_RUN_MM}
                   validate={runLengthError}
                   onChange={(mm) =>
                     dispatch({ type: "setRunLength", id: run.id, mm })
@@ -111,9 +107,10 @@ export function RunBuilder({ runs, dispatch, onSelectRun }: RunBuilderProps) {
                 {run.gate && (
                   <NumberField
                     id={`${run.id}-gate`}
-                    label="Gate width (mm)"
-                    hint={`${MIN_GATE_WIDTH_MM} to ${MAX_GATE_WIDTH_MM} mm`}
+                    label="Gate width"
+                    hint="In metres or mm, e.g. 0.9 or 900"
                     value={run.gate.widthMm}
+                    maxMm={MAX_GATE_WIDTH_MM}
                     validate={gateWidthError}
                     onChange={(mm) =>
                       dispatch({ type: "setGateWidth", id: run.id, mm })

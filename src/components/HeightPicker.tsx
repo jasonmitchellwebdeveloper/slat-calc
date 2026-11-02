@@ -1,6 +1,6 @@
 import type { Dispatch } from "react";
 import { MAX_FENCE_HEIGHT_MM } from "@/engine/catalogue";
-import { MIN_FENCE_HEIGHT_MM, type HeightOption } from "@/engine/height";
+import type { HeightOption } from "@/engine/height";
 import type { Design } from "@/engine/types";
 import type { DesignAction } from "./designReducer";
 import styles from "./HeightPicker.module.scss";
@@ -23,9 +23,10 @@ export function HeightPicker({ design, options, dispatch }: HeightPickerProps) {
     <div className={styles.picker}>
       <NumberField
         id="target-height"
-        label="Target height (mm)"
-        hint={`${MIN_FENCE_HEIGHT_MM} to ${MAX_FENCE_HEIGHT_MM} mm, including ground clearance`}
+        label="Target height"
+        hint="In metres or mm, e.g. 1.8 or 1800, including ground clearance"
         value={design.targetHeightMm}
+        maxMm={MAX_FENCE_HEIGHT_MM}
         validate={targetHeightError}
         onChange={(mm) => dispatch({ type: "setTargetHeight", mm })}
       />

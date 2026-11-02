@@ -25,10 +25,17 @@
   }
 }
 
+.confirm,
 .hint,
 .error {
   margin: 0;
   font-size: 0.875rem;
+}
+
+// Holds one line so nothing moves when the conversion appears.
+.confirm {
+  min-height: 1.25rem;
+  font-weight: 600;
 }
 
 .hint {
