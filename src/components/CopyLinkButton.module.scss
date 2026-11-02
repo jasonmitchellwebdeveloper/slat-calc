@@ -1,0 +1,31 @@
+@use "../styles/mixins" as *;
+
+.copy {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.button {
+  @include tap-target;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--colour-accent);
+  border-radius: var(--radius);
+  background: var(--colour-surface);
+  color: var(--colour-accent);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    border-color: var(--colour-border);
+    color: var(--colour-muted);
+    cursor: not-allowed;
+  }
+}
+
+// Holds one line so the results don't jump when a message appears.
+.copy .message {
+  min-height: 1.25rem;
+  margin: 0;
+  color: var(--colour-muted);
+  font-size: 0.875rem;
+}

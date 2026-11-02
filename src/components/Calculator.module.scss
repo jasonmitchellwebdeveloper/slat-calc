@@ -21,6 +21,16 @@
   min-width: 0;
 }
 
+.linkNotice {
+  margin: 0;
+  color: var(--colour-error);
+  font-weight: 600;
+
+  @include md {
+    grid-column: 1 / -1;
+  }
+}
+
 // Preview first on a phone, so changes to height and colour show beside it.
 // From md up the form takes the left column and the preview tops the right.
 @include md {

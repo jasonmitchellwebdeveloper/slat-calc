@@ -1,20 +1,30 @@
 "use client";
 
-import { useMemo, useReducer, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { COLOURS } from "@/engine/catalogue";
 import { calculate } from "@/engine/calculate";
 import { DEMO_ACCOUNT_CODE, type PriceContext } from "@/engine/pricing";
-import type { Mounting } from "@/engine/types";
+import type { Design, Mounting } from "@/engine/types";
 import { BomTable } from "./BomTable";
 import styles from "./Calculator.module.scss";
+import { CopyLinkButton } from "./CopyLinkButton";
 import { CutList } from "./CutList";
-import { designReducer, initialDesign } from "./designReducer";
+import { designReducer } from "./designReducer";
+import { designSearch, readDesignFromSearch } from "./designUrl";
 import { Elevation } from "./Elevation";
 import { HeightPicker } from "./HeightPicker";
 import { OptionGroup, type Option } from "./OptionGroup";
 import { PriceSummary } from "./PriceSummary";
 import { RunBuilder } from "./RunBuilder";
 import { SummaryBar } from "./SummaryBar";
+
+const URL_SYNC_DELAY_MS = 300;
 
 type PriceList = "retail" | "trade" | "account";
 
@@ -41,8 +51,40 @@ const MOUNTING_OPTIONS: Option<Mounting>[] = [
   { value: "base-plate", label: "Base plate" },
 ];
 
+// The page is prerendered without a query string, so a shared link can only be
+// read in the browser. This hydrates cleanly, then swaps in the linked design.
+let firstSearch: string | undefined;
+const getBrowserSearch = () => (firstSearch ??= window.location.search);
+const getServerSearch = () => "";
+const subscribeToNothing = () => () => {};
+
 export function Calculator() {
-  const [design, dispatch] = useReducer(designReducer, initialDesign);
+  const search = useSyncExternalStore(
+    subscribeToNothing,
+    getBrowserSearch,
+    getServerSearch,
+  );
+  const { design, linkInvalid } = useMemo(
+    () => readDesignFromSearch(search),
+    [search],
+  );
+  // The key resets every field's typed text when the linked design arrives.
+  return (
+    <CalculatorForm
+      key={search}
+      startDesign={design}
+      linkInvalid={linkInvalid}
+    />
+  );
+}
+
+interface CalculatorFormProps {
+  startDesign: Design;
+  linkInvalid: boolean;
+}
+
+function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
+  const [design, dispatch] = useReducer(designReducer, startDesign);
   const [priceList, setPriceList] = useState<PriceList>("retail");
   const pricing = PRICE_CONTEXTS[priceList];
   const result = useMemo(() => calculate(design, pricing), [design, pricing]);
@@ -58,9 +100,26 @@ export function Calculator() {
   const colour = COLOURS.find((c) => c.id === lastValidDesign.colour);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
 
+  // Only valid designs reach the address bar, so a copied URL always loads.
+  useEffect(() => {
+    if (lastValidDesign === startDesign) return;
+    const timer = setTimeout(() => {
+      const { pathname, hash } = window.location;
+      const url = `${pathname}${designSearch(lastValidDesign)}${hash}`;
+      window.history.replaceState(null, "", url);
+    }, URL_SYNC_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [lastValidDesign, startDesign]);
+
   return (
     <>
       <div className={styles.layout}>
+        {linkInvalid && (
+          <p className={styles.linkNotice} role="alert">
+            That design link couldn&apos;t be read, so this is the starting
+            design instead.
+          </p>
+        )}
         {shown.ok && (
           <section
             className={`${styles.card} ${styles.preview}`}
@@ -134,6 +193,7 @@ export function Calculator() {
                 value={priceList}
                 onChange={setPriceList}
               />
+              <CopyLinkButton design={lastValidDesign} disabled={!result.ok} />
               {!result.ok && (
                 <p className={styles.notice}>
                   Check your entries. These figures are from your last valid
