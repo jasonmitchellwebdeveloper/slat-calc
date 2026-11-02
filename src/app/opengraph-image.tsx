@@ -4,7 +4,7 @@ export const alt = "Slatwise: slat fence calculator";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const SLATS = Array.from({ length: 9 }, (_, i) => i);
+const SLATS = Array.from({ length: 7 }, (_, i) => i);
 
 export default function Image() {
   return new ImageResponse(
@@ -35,9 +35,9 @@ export default function Image() {
           />
         ))}
       </div>
-      <div style={{ fontSize: 88, fontWeight: 700 }}>Slatwise</div>
-      <div style={{ fontSize: 40, color: "#565c62" }}>
-        Slat fence calculator: height, materials, cut list and quote
+      <div style={{ fontSize: 88, lineHeight: 1.2 }}>Slatwise</div>
+      <div style={{ fontSize: 40, lineHeight: 1.3, color: "#565c62" }}>
+        Slat fence calculator
       </div>
     </div>,
     size,
