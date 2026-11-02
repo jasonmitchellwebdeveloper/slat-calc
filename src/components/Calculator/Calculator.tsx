@@ -7,23 +7,23 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { COLOURS } from "@/engine/catalogue";
 import { calculate } from "@/engine/calculate";
+import { COLOURS } from "@/engine/catalogue";
 import { DEMO_ACCOUNT_CODE, type PriceContext } from "@/engine/pricing";
 import type { Design, Mounting } from "@/engine/types";
-import { BomTable } from "./BomTable";
+import { designReducer } from "@/lib/designReducer";
+import { designSearch, readDesignFromSearch } from "@/lib/designUrl";
+import type { Unit } from "@/lib/validation";
+import { BomTable } from "../BomTable/BomTable";
+import { CopyLinkButton } from "../CopyLinkButton/CopyLinkButton";
+import { CutList } from "../CutList/CutList";
+import { Elevation } from "../Elevation/Elevation";
+import { HeightPicker } from "../HeightPicker/HeightPicker";
+import { OptionGroup, type Option } from "../OptionGroup/OptionGroup";
+import { PriceSummary } from "../PriceSummary/PriceSummary";
+import { RunBuilder } from "../RunBuilder/RunBuilder";
+import { SummaryBar } from "../SummaryBar/SummaryBar";
 import styles from "./Calculator.module.scss";
-import { CopyLinkButton } from "./CopyLinkButton";
-import { CutList } from "./CutList";
-import { designReducer } from "./designReducer";
-import { designSearch, readDesignFromSearch } from "./designUrl";
-import { Elevation } from "./Elevation";
-import { HeightPicker } from "./HeightPicker";
-import { OptionGroup, type Option } from "./OptionGroup";
-import { PriceSummary } from "./PriceSummary";
-import { RunBuilder } from "./RunBuilder";
-import { SummaryBar } from "./SummaryBar";
-import type { Unit } from "./validation";
 
 const URL_SYNC_DELAY_MS = 300;
 

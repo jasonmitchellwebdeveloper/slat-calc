@@ -1,7 +1,7 @@
 import { findProduct } from "@/engine/catalogue";
 import type { SkuCutPlan } from "@/engine/cutting";
+import { describeCutPattern, describeCutPlan } from "@/lib/format";
 import styles from "./CutList.module.scss";
-import { describeCutPattern, describeCutPlan } from "./format";
 
 interface CutListProps {
   plans: SkuCutPlan[];

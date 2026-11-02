@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
 import type { RunLayout } from "@/engine/bom";
 import type { Design } from "@/engine/types";
-import { buildElevation, describeElevation } from "./elevationGeometry";
+import { OptionGroup } from "../OptionGroup/OptionGroup";
 import styles from "./Elevation.module.scss";
-import { OptionGroup } from "./OptionGroup";
+import { buildElevation, describeElevation } from "./elevationGeometry";
 
 interface ElevationProps {
   design: Design;

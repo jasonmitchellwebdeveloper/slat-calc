@@ -1,6 +1,6 @@
 import type { PricedLine } from "@/engine/pricing";
+import { formatCents } from "@/lib/format";
 import styles from "./BomTable.module.scss";
-import { formatCents } from "./format";
 
 interface BomTableProps {
   lines: PricedLine[];

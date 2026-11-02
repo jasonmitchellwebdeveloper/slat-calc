@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Design } from "@/engine/types";
+import { designSearch } from "@/lib/designUrl";
 import styles from "./CopyLinkButton.module.scss";
-import { designSearch } from "./designUrl";
 
 interface CopyLinkButtonProps {
   design: Design;

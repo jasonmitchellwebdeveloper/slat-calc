@@ -1,4 +1,4 @@
-import { formatCents } from "./format";
+import { formatCents } from "@/lib/format";
 import styles from "./SummaryBar.module.scss";
 
 interface SummaryBarProps {

@@ -2,11 +2,11 @@ import type { Dispatch } from "react";
 import { MAX_FENCE_HEIGHT_MM } from "@/engine/catalogue";
 import { MIN_FENCE_HEIGHT_MM, type HeightOption } from "@/engine/height";
 import type { Design } from "@/engine/types";
-import type { DesignAction } from "./designReducer";
+import type { DesignAction } from "@/lib/designReducer";
+import { rangeText, targetHeightError, type Unit } from "@/lib/validation";
+import { NumberField } from "../NumberField/NumberField";
+import { OptionGroup } from "../OptionGroup/OptionGroup";
 import styles from "./HeightPicker.module.scss";
-import { NumberField } from "./NumberField";
-import { OptionGroup } from "./OptionGroup";
-import { rangeText, targetHeightError, type Unit } from "./validation";
 
 interface HeightPickerProps {
   design: Design;

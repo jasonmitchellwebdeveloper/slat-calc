@@ -7,15 +7,15 @@ import {
   MIN_RUN_MM,
 } from "@/engine/catalogue";
 import type { Run } from "@/engine/types";
-import type { DesignAction } from "./designReducer";
-import { NumberField } from "./NumberField";
-import styles from "./RunBuilder.module.scss";
+import type { DesignAction } from "@/lib/designReducer";
 import {
   gateWidthError,
   rangeText,
   runLengthError,
   type Unit,
-} from "./validation";
+} from "@/lib/validation";
+import { NumberField } from "../NumberField/NumberField";
+import styles from "./RunBuilder.module.scss";
 
 interface RunBuilderProps {
   runs: Run[];

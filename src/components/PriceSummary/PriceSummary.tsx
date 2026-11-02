@@ -1,5 +1,5 @@
 import type { PricedBom } from "@/engine/pricing";
-import { formatCents } from "./format";
+import { formatCents } from "@/lib/format";
 import styles from "./PriceSummary.module.scss";
 
 interface PriceSummaryProps {

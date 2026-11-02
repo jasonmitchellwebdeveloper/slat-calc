@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
-import styles from "./NumberField.module.scss";
 import {
   formatLength,
   parseLengthMm,
   type Unit,
   type Validate,
-} from "./validation";
+} from "@/lib/validation";
+import styles from "./NumberField.module.scss";
 
 interface NumberFieldProps {
   id: string;

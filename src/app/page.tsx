@@ -1,4 +1,4 @@
-import { Calculator } from "@/components/Calculator";
+import { Calculator } from "@/components/Calculator/Calculator";
 import styles from "./page.module.scss";
 
 export default function Home() {
