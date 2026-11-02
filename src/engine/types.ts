@@ -21,6 +21,22 @@ export interface SlatDesign {
   runs: Run[];
 }
 
+export type PanelProfile = "sawtooth" | "trimline";
+export type ConcreteType = "post-mix" | "rapid-set" | "none";
+
+export interface PanelDesign {
+  system: "panel";
+  fenceHeightMm: number; // of the panel, not counting sleepers
+  sleepers: number; // rows under each panel
+  postLengthMm: number | null; // null uses the recommended length
+  profile: PanelProfile;
+  colour: string; // infill sheets
+  frameColour: string; // posts and rails
+  concrete: ConcreteType;
+  mounting: Mounting;
+  runs: Run[];
+}
+
 export type Design = SlatDesign;
 
 export interface Product {
