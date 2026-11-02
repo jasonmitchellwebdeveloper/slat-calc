@@ -25,11 +25,9 @@ export function RunBuilder({ runs, dispatch, onSelectRun }: RunBuilderProps) {
   // flushSync so the new run exists before focus moves into it.
   function addRun() {
     flushSync(() => dispatch({ type: "addRun" }));
-    const input = listRef.current?.querySelector<HTMLInputElement>(
-      "li:last-child input",
-    );
-    input?.focus();
-    input?.select();
+    listRef.current
+      ?.querySelector<HTMLInputElement>("li:last-child input")
+      ?.focus();
   }
 
   // The focused button is about to disappear, so give focus a new home.

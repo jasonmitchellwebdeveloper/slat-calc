@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import styles from "./NumberField.module.scss";
 import { parseWholeNumber, type Validate } from "./validation";
 
@@ -13,6 +13,7 @@ interface NumberFieldProps {
 
 // Keeps the raw text so a half-typed value stays on screen. An error appears
 // on blur and clears as soon as the value is valid, not on every keystroke.
+// Focusing selects the value, so typing replaces it without deleting first.
 export function NumberField({
   id,
   label,
@@ -26,6 +27,7 @@ export function NumberField({
   const error = blurred ? validate(value) : undefined;
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
+  const justFocused = useRef(false);
 
   return (
     <div className={styles.field}>
@@ -41,9 +43,23 @@ export function NumberField({
         value={text}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${hintId} ${errorId}` : hintId}
-        onBlur={() => setBlurred(true)}
+        onFocus={(event) => {
+          justFocused.current = true;
+          event.target.select();
+        }}
+        // Finishing a tap can clear the selection, so the tap that focused the
+        // field selects again. Later taps place the cursor as normal.
+        onClick={(event) => {
+          if (justFocused.current) event.currentTarget.select();
+          justFocused.current = false;
+        }}
+        onBlur={() => {
+          justFocused.current = false;
+          setBlurred(true);
+        }}
         onChange={(event) => {
           const parsed = parseWholeNumber(event.target.value);
+          justFocused.current = false;
           setText(event.target.value);
           if (!validate(parsed)) setBlurred(false);
           onChange(parsed);
