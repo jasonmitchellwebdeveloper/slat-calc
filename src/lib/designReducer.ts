@@ -5,6 +5,7 @@ const NEW_RUN_LENGTH_MM = 3000;
 const NEW_GATE_WIDTH_MM = 900;
 
 export const initialDesign: Design = {
+  system: "slat",
   targetHeightMm: 1800,
   gapMm: 5,
   slatCount: 25,

@@ -37,6 +37,7 @@ export interface RunLayout {
   lengthMm: number;
   sharesCorner: boolean; // first post belongs to the previous run
   bays: number;
+  bayWidthsMm: number[]; // post centre to post centre
   bayWidthMm: number;
   posts: number;
   slatCutMm: number;
@@ -109,6 +110,7 @@ export function layoutRuns(design: Design): RunLayout[] {
       lengthMm: run.lengthMm,
       sharesCorner,
       bays,
+      bayWidthsMm: Array.from({ length: bays }, () => bayWidthMm),
       bayWidthMm,
       posts: bays + 1 - (sharesCorner ? 1 : 0) + (run.gate ? 1 : 0),
       slatCutMm: bayWidthMm - POST_WIDTH_MM - 2 * CHANNEL_CLEARANCE_MM,

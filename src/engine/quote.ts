@@ -21,6 +21,7 @@ export const QuoteSchema = z.object({
     ),
   }),
   design: z.object({
+    system: z.literal("slat"),
     fenceHeightMm: z.int(),
     gapMm: z.literal([5, 9, 20]),
     slatCount: z.int(),
@@ -77,6 +78,7 @@ export function buildQuote(
     createdAt: now.toISOString(),
     customer: { tier: ctx.tier, accountCode: ctx.accountCode },
     design: {
+      system: design.system,
       fenceHeightMm: result.layouts[0].fenceHeightMm,
       gapMm: design.gapMm,
       slatCount: design.slatCount,
@@ -100,6 +102,7 @@ export function verifyQuote({ customer, design, lines, totals }: Quote) {
 
   const result = calculate(
     {
+      system: design.system,
       targetHeightMm: design.fenceHeightMm,
       gapMm: design.gapMm,
       slatCount: design.slatCount,

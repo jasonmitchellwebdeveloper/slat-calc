@@ -5,6 +5,7 @@ import { designSearch, readDesignFromSearch } from "../designUrl";
 import type { Design } from "@/engine/types";
 
 const twoRuns: Design = {
+  system: "slat",
   targetHeightMm: 1800,
   gapMm: 9,
   slatCount: 24,
@@ -35,6 +36,15 @@ function expectRejected(search: string) {
 describe("reading a design from the URL", () => {
   it("round-trips a design exactly", () => {
     expect(readDesignFromSearch(designSearch(twoRuns))).toEqual({
+      design: twoRuns,
+      linkInvalid: false,
+    });
+  });
+
+  it("opens a link from before fence types existed as a slat design", () => {
+    const oldDesign: Partial<Design> = { ...twoRuns };
+    delete oldDesign.system;
+    expect(readDesignFromSearch(searchFor(oldDesign))).toEqual({
       design: twoRuns,
       linkInvalid: false,
     });

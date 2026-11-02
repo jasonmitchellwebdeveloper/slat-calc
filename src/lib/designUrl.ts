@@ -26,7 +26,10 @@ function decodeDesign(encoded: string): Design | null {
     return null;
   }
 
-  const parsed = designSchema.safeParse(json);
+  // Links from before there was a choice of fence type are all slat designs.
+  const parsed = designSchema.safeParse(
+    json && typeof json === "object" ? { system: "slat", ...json } : json,
+  );
   if (!parsed.success) return null;
 
   const design: Design = {

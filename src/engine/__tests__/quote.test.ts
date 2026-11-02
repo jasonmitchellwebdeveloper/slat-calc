@@ -11,6 +11,7 @@ import {
 import type { Design } from "../types";
 
 const design: Design = {
+  system: "slat",
   targetHeightMm: 1800,
   gapMm: 5,
   slatCount: 25,
@@ -51,6 +52,7 @@ describe("buildQuote", () => {
     expect(q.createdAt).toBe("2026-11-01T23:30:00.000Z");
     expect(q.customer).toEqual({ tier: "retail" });
     expect(q.design).toEqual({
+      system: "slat",
       fenceHeightMm: 1795,
       gapMm: 5,
       slatCount: 25,

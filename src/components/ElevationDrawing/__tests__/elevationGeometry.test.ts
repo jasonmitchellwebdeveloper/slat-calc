@@ -5,6 +5,7 @@ import { buildElevation, describeElevation } from "../elevationGeometry";
 
 function design(runs: Run[], mounting: Mounting = "in-ground"): Design {
   return {
+    system: "slat",
     targetHeightMm: 1800,
     gapMm: 5,
     slatCount: 25,

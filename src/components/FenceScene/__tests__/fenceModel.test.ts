@@ -5,6 +5,7 @@ import { buildFenceModel, type Box } from "../fenceModel";
 
 function design(runs: Run[], mounting: Mounting = "in-ground"): Design {
   return {
+    system: "slat",
     targetHeightMm: 1800,
     gapMm: 5,
     slatCount: 25,

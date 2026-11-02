@@ -5,6 +5,7 @@ import { DEMO_ACCOUNT_CODE } from "../pricing";
 import type { Design } from "../types";
 
 const design: Design = {
+  system: "slat",
   targetHeightMm: 1800,
   gapMm: 5,
   slatCount: 25,

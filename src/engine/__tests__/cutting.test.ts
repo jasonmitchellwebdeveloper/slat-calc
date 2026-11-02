@@ -142,6 +142,7 @@ describe("planCuts", () => {
 
   it("plans slats and channels separately for the 6000 mm example", () => {
     const design: Design = {
+      system: "slat",
       targetHeightMm: 1800,
       gapMm: 5,
       slatCount: 25,

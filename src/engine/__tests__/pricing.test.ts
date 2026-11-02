@@ -17,6 +17,7 @@ const RUN: Run = { id: "a", lengthMm: 6000, startsAtCorner: false };
 
 function price(ctx: PriceContext, extra: Partial<Design> = {}) {
   const design: Design = {
+    system: "slat",
     targetHeightMm: 1800,
     gapMm: 5,
     slatCount: 25,

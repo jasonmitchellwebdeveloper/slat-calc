@@ -5,6 +5,7 @@ const MAX_RUNS = 50;
 
 // Shape only. Whether a design can be built is calculate()'s job.
 export const designSchema = z.object({
+  system: z.literal("slat"),
   targetHeightMm: z.int(),
   gapMm: z.literal([5, 9, 20]),
   slatCount: z.int(),

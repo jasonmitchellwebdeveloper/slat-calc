@@ -12,6 +12,7 @@ function run(lengthMm: number, extra: Partial<Run> = {}): Run {
 
 function design(runs: Run[], extra: Partial<Design> = {}): Design {
   return {
+    system: "slat",
     targetHeightMm: 1800,
     gapMm: 5,
     slatCount: 25,
@@ -224,6 +225,7 @@ describe("layoutRuns", () => {
         lengthMm: 6000,
         sharesCorner: false,
         bays: 4,
+        bayWidthsMm: [1500, 1500, 1500, 1500],
         bayWidthMm: 1500,
         posts: 5,
         slatCutMm: 1446,
@@ -235,6 +237,7 @@ describe("layoutRuns", () => {
         lengthMm: 4000,
         sharesCorner: true,
         bays: 3,
+        bayWidthsMm: [1333, 1333, 1333],
         bayWidthMm: 1333,
         posts: 3,
         slatCutMm: 1279,

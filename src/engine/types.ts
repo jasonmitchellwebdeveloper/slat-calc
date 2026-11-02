@@ -11,7 +11,8 @@ export interface Run {
   gate?: { widthMm: number }; // MVP: one gate at the end of the run
 }
 
-export interface Design {
+export interface SlatDesign {
+  system: "slat";
   targetHeightMm: number;
   gapMm: GapMm;
   slatCount: number; // chosen from the height solver
@@ -19,6 +20,8 @@ export interface Design {
   mounting: Mounting;
   runs: Run[];
 }
+
+export type Design = SlatDesign;
 
 export interface Product {
   sku: string;
