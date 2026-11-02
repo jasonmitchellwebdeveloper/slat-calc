@@ -9,8 +9,8 @@ A mobile-first calculator for aluminium slat fencing. Enter a target height and 
 Specs and prices are illustrative. This is a portfolio project, not affiliated with any supplier.
 
 <p>
-  <img src=".github/screenshot-phone.png" alt="The calculator on a phone, drawing a 4500 mm run with a gate and shared corner post above the height inputs, with the total pinned to the bottom of the screen" width="260">
-  <img src=".github/screenshot-desktop.png" alt="The calculator on desktop, with the inputs on the left and the drawing and results on the right" width="520">
+  <img src=".github/screenshot-phone.png" alt="The calculator on a phone, showing a 3D view of a fence run with a gate above the inputs, with the total pinned to the bottom of the screen" width="260">
+  <img src=".github/screenshot-desktop.png" alt="The calculator on desktop, with the inputs on the left and the 3D view and results on the right" width="520">
 </p>
 
 ## Features
@@ -44,7 +44,7 @@ Other deliberate choices:
 - **Only the design is stored in state.** Everything else is derived, so a figure can't go stale.
 - **A shared link is untrusted input.** It's size-capped, schema-checked and run through the engine, and a bad one falls back to the starting design with a notice.
 - **The page is statically prerendered.** Only `/api/quote` runs on the server.
-- **SVG for the plan, WebGL for 3D.** SVG is prerendered, prints sharply and suits a dimensioned drawing. three.js adds 134 KB gzipped, so it's lazy-loaded and normal visits never pay for it. It renders only when something changes, with no animation loop.
+- **SVG for the plan, WebGL for 3D.** SVG is prerendered, prints sharply and suits a dimensioned drawing. three.js adds about 135 KB gzipped, so it's lazy-loaded and normal visits never pay for it. It renders only when something changes, with no animation loop.
 - **Slat gaps are a mipmapped texture in 3D.** Drawn as geometry, gaps thinner than a pixel alias into speckle. A texture averages them into a smooth tone while wide gaps still show as lines.
 
 ## How the numbers work
@@ -99,7 +99,7 @@ Bay width is floored to whole millimetres so every slat in a run matches. Any le
 - **282 unit and API tests** (Vitest), with the engine written test-first against hand-worked numbers.
 - **18 browser tests** (Playwright): the reference run, axe across six page states, a keyboard-only quote request, focus staying clear of the sticky bar, and the 3D view's lazy loading, controls and fallbacks.
 - **CI** runs formatting, lint, types and both test suites on every push.
-- **Lighthouse mobile on production, three runs:** Performance 99 to 100, Accessibility, Best Practices and SEO 100. Largest Contentful Paint 0.8 to 1.1 s, Cumulative Layout Shift 0.
+- **Lighthouse mobile on production, three runs:** Performance 99 to 100, Accessibility, Best Practices and SEO 100. Largest Contentful Paint 0.8 to 1.4 s, Cumulative Layout Shift 0.
 
 <img src=".github/lighthouse-mobile.png" alt="Lighthouse report for slat-calc.vercel.app scoring 100 for performance, accessibility, best practices and SEO" width="600">
 
