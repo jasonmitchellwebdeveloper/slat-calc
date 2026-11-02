@@ -10,6 +10,7 @@
 
   @include md {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
     align-items: start;
   }
 }
@@ -18,6 +19,25 @@
   display: grid;
   gap: var(--space-4);
   min-width: 0;
+}
+
+// Preview first on a phone, so changes to height and colour show beside it.
+// From md up the form takes the left column and the preview tops the right.
+@include md {
+  .preview {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .form {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .output {
+    grid-column: 2;
+    grid-row: 2;
+  }
 }
 
 .results,

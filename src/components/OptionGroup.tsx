@@ -12,9 +12,15 @@ interface OptionGroupProps<T extends string> {
   name: string;
   options: Option<T>[];
   value: T;
-  columns?: 1 | 2;
+  columns?: 1 | 2 | "row";
   onChange: (value: T) => void;
 }
+
+const LAYOUT_CLASSES = {
+  1: styles.oneColumn,
+  2: styles.twoColumns,
+  row: styles.row,
+};
 
 // Native radios, so arrow keys and screen readers work without extra code.
 export function OptionGroup<T extends string>({
@@ -28,7 +34,7 @@ export function OptionGroup<T extends string>({
   return (
     <fieldset className={styles.group}>
       <legend className={styles.legend}>{legend}</legend>
-      <div className={columns === 2 ? styles.twoColumns : styles.oneColumn}>
+      <div className={LAYOUT_CLASSES[columns]}>
         {options.map((option) => (
           <label key={option.value} className={styles.option}>
             <input

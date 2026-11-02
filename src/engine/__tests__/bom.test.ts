@@ -221,6 +221,8 @@ describe("layoutRuns", () => {
     expect(layoutRuns(d)).toEqual([
       {
         runId: "a",
+        lengthMm: 6000,
+        sharesCorner: false,
         bays: 4,
         bayWidthMm: 1500,
         posts: 5,
@@ -230,6 +232,8 @@ describe("layoutRuns", () => {
       },
       {
         runId: "b",
+        lengthMm: 4000,
+        sharesCorner: true,
         bays: 3,
         bayWidthMm: 1333,
         posts: 3,

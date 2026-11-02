@@ -34,6 +34,8 @@ export interface Bom {
 
 export interface RunLayout {
   runId: string;
+  lengthMm: number;
+  sharesCorner: boolean; // first post belongs to the previous run
   bays: number;
   bayWidthMm: number;
   posts: number;
@@ -104,6 +106,8 @@ export function layoutRuns(design: Design): RunLayout[] {
     const sharesCorner = run.startsAtCorner && index > 0;
     const layout: RunLayout = {
       runId: run.id,
+      lengthMm: run.lengthMm,
+      sharesCorner,
       bays,
       bayWidthMm,
       posts: bays + 1 - (sharesCorner ? 1 : 0) + (run.gate ? 1 : 0),

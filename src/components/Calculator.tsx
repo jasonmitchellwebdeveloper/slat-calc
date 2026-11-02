@@ -9,6 +9,7 @@ import { BomTable } from "./BomTable";
 import styles from "./Calculator.module.scss";
 import { CutList } from "./CutList";
 import { designReducer, initialDesign } from "./designReducer";
+import { Elevation } from "./Elevation";
 import { HeightPicker } from "./HeightPicker";
 import { OptionGroup, type Option } from "./OptionGroup";
 import { PriceSummary } from "./PriceSummary";
@@ -54,12 +55,29 @@ export function Calculator() {
     () => (result.ok ? result : calculate(lastValidDesign, pricing)),
     [result, lastValidDesign, pricing],
   );
-  const colourName = COLOURS.find((c) => c.id === lastValidDesign.colour)?.name;
+  const colour = COLOURS.find((c) => c.id === lastValidDesign.colour);
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
 
   return (
     <>
       <div className={styles.layout}>
-        <div className={styles.column}>
+        {shown.ok && (
+          <section
+            className={`${styles.card} ${styles.preview}`}
+            aria-labelledby="step-preview"
+          >
+            <h2 id="step-preview">Preview</h2>
+            <Elevation
+              design={lastValidDesign}
+              layouts={shown.layouts}
+              selectedRunId={selectedRunId}
+              colourHex={colour?.hex ?? ""}
+              stale={!result.ok}
+              onSelectRun={setSelectedRunId}
+            />
+          </section>
+        )}
+        <div className={`${styles.column} ${styles.form}`}>
           <section className={styles.card} aria-labelledby="step-height">
             <h2 id="step-height">Height</h2>
             <HeightPicker
@@ -81,7 +99,11 @@ export function Calculator() {
           </section>
           <section className={styles.card} aria-labelledby="step-runs">
             <h2 id="step-runs">Runs</h2>
-            <RunBuilder runs={design.runs} dispatch={dispatch} />
+            <RunBuilder
+              runs={design.runs}
+              dispatch={dispatch}
+              onSelectRun={setSelectedRunId}
+            />
           </section>
           <section className={styles.card} aria-labelledby="step-mounting">
             <h2 id="step-mounting">Mounting</h2>
@@ -97,7 +119,7 @@ export function Calculator() {
             />
           </section>
         </div>
-        <div className={styles.column}>
+        <div className={`${styles.column} ${styles.output}`}>
           <section
             id="results"
             className={styles.card}
@@ -126,7 +148,7 @@ export function Calculator() {
                   <PriceSummary priced={shown.priced} />
                   <BomTable
                     lines={shown.priced.lines}
-                    colourName={colourName ?? ""}
+                    colourName={colour?.name ?? ""}
                   />
                   <CutList plans={shown.cutPlans} />
                 </div>

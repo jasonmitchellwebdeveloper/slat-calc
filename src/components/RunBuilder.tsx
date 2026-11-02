@@ -15,9 +15,10 @@ import { gateWidthError, runLengthError } from "./validation";
 interface RunBuilderProps {
   runs: Run[];
   dispatch: Dispatch<DesignAction>;
+  onSelectRun: (id: string) => void;
 }
 
-export function RunBuilder({ runs, dispatch }: RunBuilderProps) {
+export function RunBuilder({ runs, dispatch, onSelectRun }: RunBuilderProps) {
   const listRef = useRef<HTMLOListElement>(null);
   const addRef = useRef<HTMLButtonElement>(null);
 
@@ -44,7 +45,13 @@ export function RunBuilder({ runs, dispatch }: RunBuilderProps) {
           const name = `Run ${index + 1}`;
           const headingId = `${run.id}-heading`;
           return (
-            <li key={run.id}>
+            // The preview follows the run being edited. Click as well as focus,
+            // because Safari doesn't focus checkboxes when they're tapped.
+            <li
+              key={run.id}
+              onFocus={() => onSelectRun(run.id)}
+              onClick={() => onSelectRun(run.id)}
+            >
               <div
                 className={styles.run}
                 role="group"
