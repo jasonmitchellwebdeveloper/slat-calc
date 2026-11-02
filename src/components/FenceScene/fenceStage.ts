@@ -72,7 +72,12 @@ function createRibTexture(): DataTexture {
 }
 
 export interface FenceStage {
-  setModel: (model: FenceModel, infillHex: string, frameHex: string) => void;
+  setModel: (
+    model: FenceModel,
+    infillHex: string,
+    frameHex: string,
+    sleeperHex: string,
+  ) => void;
   setLabel: (label: string) => void;
   rotate: (radians: number) => void;
   resetView: () => void;
@@ -139,12 +144,14 @@ export function createFenceStage(
     opacity: SEE_THROUGH,
     depthWrite: false,
   });
+  const sleeperMaterial = new MeshStandardMaterial({ roughness: 0.8 });
   const hingeMaterial = new MeshStandardMaterial({ color: HINGE_COLOUR });
   const materials = [
     groundMaterial,
     solid,
     slatted,
     ribbed,
+    sleeperMaterial,
     seeThrough,
     hingeMaterial,
   ];
@@ -248,7 +255,7 @@ export function createFenceStage(
   }
 
   return {
-    setModel(model, infillHex, frameHex) {
+    setModel(model, infillHex, frameHex, sleeperHex) {
       const resized =
         current?.spanMm !== model.spanMm ||
         current?.heightMm !== model.heightMm ||
@@ -256,6 +263,7 @@ export function createFenceStage(
       current = model;
 
       solid.color.set(frameHex);
+      sleeperMaterial.color.set(sleeperHex);
       slatted.color.set(infillHex);
       ribbed.color.set(infillHex);
       seeThrough.color.set(frameHex);
@@ -266,7 +274,7 @@ export function createFenceStage(
       }
       addBoxes(model.sheets, ribbed);
       addBoxes(model.rails, solid);
-      addBoxes(model.sleepers, solid);
+      addBoxes(model.sleepers, sleeperMaterial);
       addBoxes(
         model.posts.filter((p) => !p.shared),
         solid,

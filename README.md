@@ -17,7 +17,7 @@ Specs and prices are illustrative. This is a portfolio project, not affiliated w
 
 - **Two products behind one switch:** slat fencing, solved from a target height, and steel panel fencing, built from fixed panel sizes.
 - **Height solver:** turns a target height into the three closest builds that can actually be made from whole slats.
-- **Steel panel rules:** panel heights, sleepers, post lengths, sheet profiles and concrete, with one long or cut panel taking up whatever a run leaves over.
+- **Steel panel rules:** panel heights, sleeper material and quantity, post lengths, sheet profiles and concrete, with one long or cut panel taking up whatever a run leaves over.
 - **Run builder:** multiple runs, shared corner posts, a gate at the end of a run, and in-ground or base-plate mounting. Enter measurements in millimetres or metres.
 - **Live drawing:** a to-scale SVG elevation, built from the same layout data as the bill of materials so the two can't disagree.
 - **Optional 3D view:** a three.js model of the selected run, derived from the same geometry, that you can rotate by drag or with buttons. It's downloaded only when someone opens it.
@@ -85,7 +85,7 @@ rest ≤ 780    one panel becomes a long one (3180 mm rail), cut to fit
 otherwise     one extra short panel, cut to fit, sheets = ceil(rest / 800)
 ```
 
-Each panel takes 2 channel posts, 2 rails and 12 screws. Each run takes 2 steel end posts, and a gate adds 2 more. Concrete is 1.5 bags per post hole, rounded up. These rules were worked out from a published calculator's output, and the tests check 25 lengths and one gate against what it returned. They reproduce those quantities rather than claiming to be its actual logic.
+Each panel takes 2 channel posts, 2 rails and 12 screws. Each run takes 2 steel end posts, and a gate adds 2 more. Sleepers come in aluminium or timber, one or two rows per panel, cut to the rail length. They don't change the channel posts, but steel end posts run to 3000 mm with sleepers or a 2100 mm panel. Concrete is 1.5 bags per post hole, rounded up. These rules were worked out from a published calculator's output, and the tests check 25 lengths , one gate and each sleeper option against what it returned. They reproduce those quantities rather than claiming to be its actual logic.
 
 **Worked example, slat.** 6000 mm run, 1800 mm target, 5 mm gap, in-ground, retail:
 
@@ -112,8 +112,8 @@ Each panel takes 2 channel posts, 2 rails and 12 screws. Each run takes 2 steel 
 
 ## Quality
 
-- **407 unit and API tests** (Vitest), with the engine written test-first against hand-worked numbers.
-- **29 browser tests** (Playwright): reference runs for both products, axe across nine page states, keyboard-only quote requests, focus staying clear of the sticky bar, old share links, tampered quotes, and the 3D view's lazy loading, controls and fallbacks.
+- **432 unit and API tests** (Vitest), with the engine written test-first against hand-worked numbers.
+- **31 browser tests** (Playwright): reference runs for both products, axe across ten page states, keyboard-only quote requests, focus staying clear of the sticky bar, old share links, tampered quotes, and the 3D view's lazy loading, controls and fallbacks.
 - **CI** runs formatting, lint, types and both test suites on every push.
 - **Lighthouse mobile on production, three runs:** Performance 99 to 100, Accessibility, Best Practices and SEO 100. Largest Contentful Paint 0.8 to 1.4 s, Cumulative Layout Shift 0.
 
@@ -129,7 +129,7 @@ This is a demo, and these are the things a production version would need to addr
 - **Contract prices reach the browser**, because the engine runs there. Real ones would need to stay on the server.
 - **Nothing is stored or sent.** A quote reference is generated and returned, then forgotten.
 - **Level ground and straight runs.** There's no stepping on slopes or raked panels, and gates only go at the end of a run.
-- **Steel panels are standard infill only**, with single gates. Lattice-style panels, double gates and extras such as coloured caps are out. Sleeper size, and how a shared corner changes the posts, are assumptions rather than observed figures.
+- **Steel panels are standard infill only**, with single gates. Lattice-style panels, double gates and extras such as coloured caps are out. How a shared corner changes the posts, and the recommended post for a 2100 mm panel, are assumptions rather than observed figures.
 - **3D shows one run at a time**, because the design doesn't record which way a corner turns. It has no dimensions, which stay on the 2D plan, and a very long run looks small because zooming is off so the page can scroll.
 - **Colour doesn't change SKUs or prices**, which a real catalogue would.
 - **Waste counts offcuts only**, not the metal lost to the saw.

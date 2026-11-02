@@ -14,6 +14,7 @@ interface ElevationProps {
   selectedRunId: string | null;
   colourHex: string;
   frameHex: string;
+  sleeperHex: string;
   stale: boolean;
   onSelectRun: (id: string) => void;
 }
@@ -44,6 +45,7 @@ export function Elevation({
   selectedRunId,
   colourHex,
   frameHex,
+  sleeperHex,
   stale,
   onSelectRun,
 }: ElevationProps) {
@@ -92,6 +94,7 @@ export function Elevation({
               index={index}
               colourHex={colourHex}
               frameHex={frameHex}
+              sleeperHex={sleeperHex}
             />
           </div>
           <p className={styles.note}>
@@ -109,6 +112,7 @@ export function Elevation({
               layout={layout}
               colourHex={colourHex}
               frameHex={frameHex}
+              sleeperHex={sleeperHex}
               label={describeElevation(layout, index)}
             />
           </div>

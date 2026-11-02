@@ -37,7 +37,14 @@ export function OptionGroup<T extends string>({
       <legend className={styles.legend}>{legend}</legend>
       <div className={LAYOUT_CLASSES[columns]}>
         {options.map((option) => (
-          <label key={option.value} className={styles.option}>
+          <label
+            key={option.value}
+            className={
+              option.swatch
+                ? `${styles.option} ${styles.swatchOption}`
+                : styles.option
+            }
+          >
             <input
               type="radio"
               name={name}

@@ -15,6 +15,16 @@ export function designSearch(design: Design): string {
   return `?${PARAM}=${encoded}`;
 }
 
+// Older links have no fence type, or sleepers with no material.
+function upgradeOldLink(json: unknown): unknown {
+  if (!json || typeof json !== "object") return json;
+  const design: Record<string, unknown> = { system: "slat", ...json };
+  if (design.system === "panel" && design.sleeperType === undefined) {
+    design.sleeperType = design.sleepers ? "aluminium" : "none";
+  }
+  return design;
+}
+
 // A link is untrusted input. Anything the form couldn't have produced is null.
 function decodeDesign(encoded: string): Design | null {
   if (encoded.length > MAX_ENCODED_LENGTH) return null;
@@ -27,9 +37,7 @@ function decodeDesign(encoded: string): Design | null {
   }
 
   // Links from before there was a choice of fence type are all slat designs.
-  const parsed = designSchema.safeParse(
-    json && typeof json === "object" ? { system: "slat", ...json } : json,
-  );
+  const parsed = designSchema.safeParse(upgradeOldLink(json));
   if (!parsed.success) return null;
 
   const design: Design = {

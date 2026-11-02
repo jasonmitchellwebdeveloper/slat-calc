@@ -32,3 +32,20 @@ describe("fenceColours", () => {
     expect(finish).toBe("Mist Grey finish");
   });
 });
+
+describe("sleeper colour", () => {
+  it("matches the frame for aluminium, and looks like timber otherwise", () => {
+    const aluminium = fenceColours({
+      ...initialPanelDesign,
+      sleeperType: "aluminium",
+      sleepers: 1,
+    });
+    expect(aluminium.sleeperHex).toBe(aluminium.frameHex);
+    const timber = fenceColours({
+      ...initialPanelDesign,
+      sleeperType: "dressed-timber",
+      sleepers: 1,
+    });
+    expect(timber.sleeperHex).not.toBe(timber.frameHex);
+  });
+});

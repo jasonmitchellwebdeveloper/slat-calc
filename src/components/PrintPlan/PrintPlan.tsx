@@ -9,6 +9,7 @@ interface PrintPlanProps {
   finish: string;
   infillHex: string;
   frameHex: string;
+  sleeperHex: string;
   priceListName: string;
 }
 
@@ -22,8 +23,12 @@ function summarise(design: Design, layout: FenceLayout): string {
   if (design.system === "slat") {
     return `${layout.fenceHeightMm} mm high, ${design.slatCount} slats, ${design.gapMm} mm gap.`;
   }
+  const sleepers =
+    design.sleeperType === "none"
+      ? "no sleepers"
+      : `${design.sleepers} x ${design.sleeperType.replace("-", " ")} ${design.sleepers === 1 ? "sleeper" : "sleepers"}`;
   const post = "panels" in layout ? `, ${layout.postLengthMm} mm posts` : "";
-  return `${design.fenceHeightMm} mm ${design.profile} panels, ${design.sleepers} ${design.sleepers === 1 ? "sleeper" : "sleepers"}${post}.`;
+  return `${design.fenceHeightMm} mm ${design.profile} panels, ${sleepers}${post}.`;
 }
 
 export function PrintPlan({
@@ -32,6 +37,7 @@ export function PrintPlan({
   finish,
   infillHex,
   frameHex,
+  sleeperHex,
   priceListName,
 }: PrintPlanProps) {
   return (
@@ -53,6 +59,7 @@ export function PrintPlan({
             index={index}
             colourHex={infillHex}
             frameHex={frameHex}
+            sleeperHex={sleeperHex}
           />
         </div>
       ))}

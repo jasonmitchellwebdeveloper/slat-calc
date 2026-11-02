@@ -12,6 +12,7 @@ interface FenceSceneProps {
   layout: FenceLayout;
   colourHex: string;
   frameHex: string;
+  sleeperHex: string;
   label: string;
 }
 
@@ -22,6 +23,7 @@ export function FenceScene({
   layout,
   colourHex,
   frameHex,
+  sleeperHex,
   label,
 }: FenceSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,8 +54,8 @@ export function FenceScene({
   }, []);
 
   useEffect(() => {
-    stageRef.current?.setModel(model, colourHex, frameHex);
-  }, [model, colourHex, frameHex]);
+    stageRef.current?.setModel(model, colourHex, frameHex, sleeperHex);
+  }, [model, colourHex, frameHex, sleeperHex]);
 
   useEffect(() => {
     stageRef.current?.setLabel(label);

@@ -300,7 +300,8 @@ test.describe("steel panel fence", () => {
 
   test("reopens from a link with every option", async ({ page }) => {
     await toPanel(page);
-    await page.getByRole("radio", { name: "1 (150 mm)" }).check();
+    await page.getByRole("radio", { name: "Aluminium", exact: true }).check();
+    await page.getByRole("radio", { name: "1 x sleeper" }).check();
     await page.getByRole("radio", { name: "Trimline" }).check();
     await page.getByRole("radio", { name: "Rapid set" }).check();
     await expect(page).toHaveURL(/\?d=/);
@@ -344,7 +345,10 @@ test.describe("steel panel fence", () => {
     page,
   }) => {
     await toPanel(page);
-    await page.getByRole("radio", { name: "2 (300 mm)" }).check();
+    await page
+      .getByRole("radio", { name: "Dressed timber", exact: true })
+      .check();
+    await page.getByRole("radio", { name: "2 x sleepers" }).check();
     await page.getByLabel("Add gate at the end").check();
     await expectNoAxeViolations(page);
     await page.getByRole("radio", { name: "3D view" }).check();
@@ -408,6 +412,57 @@ test.describe("steel panel fence", () => {
     await expect(page.locator("#results caption")).toContainText(
       "Off White finish",
     );
+  });
+
+  test("choosing a sleeper material reveals the quantity", async ({ page }) => {
+    await toPanel(page);
+    const quantity = page.getByRole("group", {
+      name: "Sleeper quantity, per panel",
+    });
+    await expect(quantity).toHaveCount(0);
+    await page.getByRole("radio", { name: "Aluminium", exact: true }).check();
+    await expect(quantity).toBeVisible();
+    await expect(
+      quantity.getByRole("radio", { name: "1 x sleeper" }),
+    ).toBeChecked();
+    await expect(row(page, /^Aluminium sleeper.*2400/).first()).toHaveText("3");
+    await expect(row(page, /^Aluminium sleeper.*3180/).first()).toHaveText("1");
+    await expect(row(page, /^Channel post, 2400/).first()).toHaveText("8");
+    await expect(row(page, /^Steel post 50 x 50 mm, 3000/).first()).toHaveText(
+      "2",
+    );
+
+    await quantity.getByRole("radio", { name: "2 x sleepers" }).check();
+    await expect(row(page, /^Aluminium sleeper.*2400/).first()).toHaveText("6");
+
+    await page.getByRole("radio", { name: "Undressed timber" }).check();
+    await expect(row(page, /^Undressed pine sleeper.*2400/).first()).toHaveText(
+      "6",
+    );
+
+    await page
+      .getByRole("group", { name: "Sleepers", exact: true })
+      .getByRole("radio", { name: "None" })
+      .check();
+    await expect(quantity).toHaveCount(0);
+    await expect(page.locator("#results")).not.toContainText("sleeper");
+  });
+
+  test("colour swatches work with no visible radio circle", async ({
+    page,
+  }) => {
+    await toPanel(page);
+    const swatch = page.getByRole("radio", { name: "Terracotta" });
+    await expect(swatch).toHaveCSS("opacity", "0");
+    await expect(page.getByRole("radio", { name: "Mist Grey" })).toBeChecked();
+    await page.locator("label", { hasText: "Terracotta" }).click();
+    await expect(swatch).toBeChecked();
+    await page.getByRole("radio", { name: "Terracotta" }).focus();
+    await page.keyboard.press("ArrowUp");
+    await expect(
+      page.getByRole("radio", { name: "Forest Green" }),
+    ).toBeChecked();
+    await expectNoAxeViolations(page);
   });
 
   test("size options fill the card in two columns", async ({ page }) => {

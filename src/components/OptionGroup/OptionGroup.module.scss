@@ -77,3 +77,29 @@
   border-radius: 50%;
   background: var(--swatch);
 }
+
+// The swatch and its ring show the choice, so the radio is hidden but still
+// there, covering the whole option for taps, keyboards and screen readers.
+.swatchOption {
+  position: relative;
+
+  input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &:has(input:focus-visible) {
+    outline: 3px solid var(--colour-accent);
+    outline-offset: 2px;
+  }
+
+  &:has(input:checked) .swatch {
+    box-shadow:
+      0 0 0 2px var(--colour-surface),
+      0 0 0 4px var(--colour-accent);
+  }
+}

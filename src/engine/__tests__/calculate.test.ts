@@ -88,6 +88,7 @@ describe("calculate with a steel panel design", () => {
   const panel: PanelDesign = {
     system: "panel",
     fenceHeightMm: 1800,
+    sleeperType: "none",
     sleepers: 0,
     postLengthMm: null,
     profile: "sawtooth",

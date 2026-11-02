@@ -240,7 +240,6 @@ describe("designReducer: panel options", () => {
 
   it.each([
     ["height", { type: "setFenceHeight", mm: 1500 } as const],
-    ["sleepers", { type: "setSleepers", sleepers: 1 } as const],
     ["mounting", { type: "setMounting", mounting: "base-plate" } as const],
   ])("returns to the recommended post when %s changes", (_, action) => {
     const next = designReducer(panel, action) as PanelDesign;
@@ -308,5 +307,44 @@ describe("designReducer: frame colour", () => {
       colour: "off-white",
     }) as PanelDesign;
     expect(next.frameColour).toBe("slate-grey");
+  });
+});
+
+describe("designReducer: sleepers", () => {
+  const set = (design: PanelDesign, sleeperType: PanelDesign["sleeperType"]) =>
+    designReducer(design, {
+      type: "setSleeperType",
+      sleeperType,
+    }) as PanelDesign;
+
+  it("starts at one row when a material is chosen", () => {
+    const next = set(initialPanelDesign, "aluminium");
+    expect(next.sleeperType).toBe("aluminium");
+    expect(next.sleepers).toBe(1);
+  });
+
+  it("keeps the quantity when changing material", () => {
+    const two: PanelDesign = {
+      ...initialPanelDesign,
+      sleeperType: "aluminium",
+      sleepers: 2,
+    };
+    expect(set(two, "dressed-timber").sleepers).toBe(2);
+  });
+
+  it("clears the quantity when set back to none", () => {
+    const two: PanelDesign = {
+      ...initialPanelDesign,
+      sleeperType: "aluminium",
+      sleepers: 2,
+    };
+    const next = set(two, "none");
+    expect(next.sleeperType).toBe("none");
+    expect(next.sleepers).toBe(0);
+  });
+
+  it("leaves a chosen post alone, as sleepers don't change it", () => {
+    const chosen: PanelDesign = { ...initialPanelDesign, postLengthMm: 2700 };
+    expect(set(chosen, "aluminium").postLengthMm).toBe(2700);
   });
 });

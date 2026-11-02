@@ -241,10 +241,13 @@ describe("buildElevation: steel panels", () => {
     expect(e.bays.map((b) => b.cut)).toEqual([false, true]);
   });
 
-  it("sits sleepers on the ground, under the panel", () => {
-    const e = of(panelDesign([longRun], { sleepers: 2 }));
-    expect(e.sleepers).toHaveLength(4);
-    expect(e.sleepers[0].y + e.sleepers[0].height).toBe(e.groundY);
+  it("sits a row of sleepers per panel on the ground, under the panel", () => {
+    const e = of(
+      panelDesign([longRun], { sleeperType: "aluminium", sleepers: 2 }),
+    );
+    expect(e.sleepers).toHaveLength(8);
+    expect(Math.max(...e.sleepers.map((s) => s.y + s.height))).toBe(e.groundY);
+    expect(e.sleepers[0].height).toBe(150);
     expect(e.groundY - e.fenceTopY).toBe(2100);
   });
 

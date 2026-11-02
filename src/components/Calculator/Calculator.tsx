@@ -165,6 +165,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
               selectedRunId={selectedRunId}
               colourHex={colours.infillHex}
               frameHex={colours.frameHex}
+              sleeperHex={colours.sleeperHex}
               stale={!result.ok}
               onSelectRun={setSelectedRunId}
             />
@@ -218,7 +219,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
                       : "Infill sheets"
                 }
                 name="colour"
-                columns={2}
+                columns="half"
                 options={
                   design.system === "slat"
                     ? COLOUR_OPTIONS
@@ -246,7 +247,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
                 <OptionGroup
                   legend="Posts and rails colour"
                   name="frame-colour"
-                  columns={2}
+                  columns="half"
                   options={PANEL_COLOUR_OPTIONS}
                   value={design.frameColour}
                   onChange={(colour) =>
@@ -301,6 +302,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
             finish={colours.finish}
             infillHex={colours.infillHex}
             frameHex={colours.frameHex}
+            sleeperHex={colours.sleeperHex}
             priceListName={PRICE_LIST_NAMES[priceList]}
           />
         )}

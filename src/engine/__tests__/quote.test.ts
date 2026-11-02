@@ -222,6 +222,7 @@ describe("steel panel quotes", () => {
   const panel: PanelDesign = {
     system: "panel",
     fenceHeightMm: 1800,
+    sleeperType: "aluminium",
     sleepers: 1,
     postLengthMm: null,
     profile: "trimline",
@@ -245,6 +246,7 @@ describe("steel panel quotes", () => {
     expect(q.design).toEqual({
       system: "panel",
       fenceHeightMm: 1800,
+      sleeperType: "aluminium",
       sleepers: 1,
       postLengthMm: null,
       profile: "trimline",
@@ -274,7 +276,7 @@ describe("steel panel quotes", () => {
 
     const changed = buildQuote(panel, RETAIL, NOW);
     if (changed.design.system !== "panel") throw new Error("expected panel");
-    changed.design = { ...changed.design, sleepers: 0 };
+    changed.design = { ...changed.design, sleeperType: "none", sleepers: 0 };
     expect(verifyQuote(changed)).toBe(false);
   });
 

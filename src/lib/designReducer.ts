@@ -32,6 +32,7 @@ export const initialDesign: SlatDesign = {
 export const initialPanelDesign: PanelDesign = {
   system: "panel",
   fenceHeightMm: 1800,
+  sleeperType: "none",
   sleepers: 0,
   postLengthMm: null,
   profile: "sawtooth",
@@ -47,6 +48,7 @@ export const initialPanelDesign: PanelDesign = {
 export type DesignAction =
   | { type: "setSystem"; system: Design["system"] }
   | { type: "setFenceHeight"; mm: number }
+  | { type: "setSleeperType"; sleeperType: PanelDesign["sleeperType"] }
   | { type: "setSleepers"; sleepers: PanelDesign["sleepers"] }
   | { type: "setPostLength"; mm: number | null }
   | { type: "setProfile"; profile: PanelProfile }
@@ -114,7 +116,17 @@ export function designReducer(design: Design, action: DesignAction): Design {
       return { ...design, fenceHeightMm: action.mm, postLengthMm: null };
     case "setSleepers":
       if (design.system !== "panel") return design;
-      return { ...design, sleepers: action.sleepers, postLengthMm: null };
+      return { ...design, sleepers: action.sleepers };
+    case "setSleeperType":
+      if (design.system !== "panel") return design;
+      if (action.sleeperType === "none") {
+        return { ...design, sleeperType: "none", sleepers: 0 };
+      }
+      return {
+        ...design,
+        sleeperType: action.sleeperType,
+        sleepers: design.sleepers === 0 ? 1 : design.sleepers,
+      };
     case "setPostLength":
       if (design.system !== "panel") return design;
       return { ...design, postLengthMm: action.mm };

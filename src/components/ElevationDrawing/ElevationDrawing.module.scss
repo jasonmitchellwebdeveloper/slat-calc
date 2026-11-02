@@ -34,6 +34,13 @@
   fill: var(--frame-colour);
 }
 
+.sleeper {
+  fill: var(--sleeper-colour);
+  stroke: var(--colour-muted);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
 // The seams show where one sheet meets the next.
 .sheet {
   fill: var(--fence-colour);

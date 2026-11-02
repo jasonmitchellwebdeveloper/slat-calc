@@ -4,7 +4,12 @@ import {
   layoutPanelRuns,
   recommendedPostLength,
 } from "../panelBom";
-import { PANEL_PRODUCTS as P, panelPost, panelSheet } from "../panelCatalogue";
+import {
+  PANEL_PRODUCTS as P,
+  panelPost,
+  panelSheet,
+  panelSleeper,
+} from "../panelCatalogue";
 import type { PanelDesign, Run } from "../types";
 
 function run(lengthMm: number, overrides: Partial<Run> = {}): Run {
@@ -18,6 +23,7 @@ function design(
   return {
     system: "panel",
     fenceHeightMm: 1800,
+    sleeperType: "none",
     sleepers: 0,
     postLengthMm: null,
     profile: "sawtooth",
@@ -163,28 +169,38 @@ describe("layoutPanelRuns", () => {
   });
 
   it("adds sleepers to the height above ground", () => {
-    const [layout] = layoutPanelRuns(
-      design([run(5000)], { fenceHeightMm: 2100, sleepers: 2 }),
+    const [aluminium] = layoutPanelRuns(
+      design([run(5000)], {
+        fenceHeightMm: 2100,
+        sleeperType: "aluminium",
+        sleepers: 2,
+      }),
     );
-    expect(layout.fenceHeightMm).toBe(2400);
-    expect(layout.sheetHeightMm).toBe(2090);
-    expect(layout.sleeperHeightMm).toBe(300);
+    expect(aluminium.fenceHeightMm).toBe(2400);
+    expect(aluminium.sheetHeightMm).toBe(2090);
+    expect(aluminium.sleeperHeightMm).toBe(300);
+
+    const [timber] = layoutPanelRuns(
+      design([run(5000)], { sleeperType: "dressed-timber", sleepers: 1 }),
+    );
+    expect(timber.fenceHeightMm).toBe(2000);
+    expect(timber.sleeperHeightMm).toBe(200);
   });
 });
 
 describe("post lengths", () => {
   it.each([
-    [1200, 0, 1800],
-    [1500, 0, 2100],
-    [1800, 0, 2400],
-    [2100, 0, 2700],
-    [1800, 1, 2700],
-    [1800, 2, 2700],
-    [2100, 2, 3000],
-  ] as const)("%d mm with %d sleepers recommends %d", (h, sleepers, post) => {
-    expect(
-      recommendedPostLength(design([], { fenceHeightMm: h, sleepers })),
-    ).toBe(post);
+    [1200, 2400],
+    [1500, 2400],
+    [1800, 2400],
+    [2100, 2700],
+  ])("a %d mm panel recommends a %d mm post", (fenceHeightMm, post) => {
+    expect(recommendedPostLength(design([], { fenceHeightMm }))).toBe(post);
+  });
+
+  it("isn't changed by sleepers", () => {
+    const d = design([], { sleeperType: "aluminium", sleepers: 2 });
+    expect(recommendedPostLength(d)).toBe(2400);
   });
 
   it("needs no in-ground depth on base plates", () => {
@@ -205,9 +221,46 @@ describe("post lengths", () => {
     expect(qty(short, panelPost("channel", 1800).sku)).toBe(4);
   });
 
-  it("rejects a post shorter than the fence", () => {
+  it("rejects a post shorter than the panel", () => {
     const bad = design([run(5000)], { postLengthMm: 1500 });
     expect(() => buildPanelBom(bad)).toThrow(RangeError);
+  });
+});
+
+// Quantities read from the same published calculator, at 10 m.
+describe("steel end posts match the reference", () => {
+  it.each([
+    [1200, 0, 2400],
+    [1500, 0, 2400],
+    [1800, 0, 2400],
+    [2100, 0, 3000],
+    [1200, 1, 3000],
+    [1200, 2, 3000],
+    [1500, 1, 3000],
+    [1500, 2, 3000],
+    [1800, 1, 3000],
+    [1800, 2, 3000],
+    [2100, 1, 3000],
+    [2100, 2, 3000],
+  ] as const)("%d mm with %d rows of sleepers: %d mm", (h, sleepers, steel) => {
+    const d = design([run(10000)], {
+      fenceHeightMm: h,
+      sleeperType: sleepers ? "aluminium" : "none",
+      sleepers,
+    });
+    expect(qty(d, panelPost("steel", steel).sku)).toBe(2);
+  });
+
+  it("leaves channel posts alone when sleepers are added", () => {
+    const d = design([run(10000)], { sleeperType: "aluminium", sleepers: 2 });
+    expect(qty(d, CHANNEL)).toBe(8);
+    expect(qty(d, panelPost("steel", 3000).sku)).toBe(2);
+  });
+
+  it("never goes shorter than a chosen post", () => {
+    const d = design([run(10000)], { postLengthMm: 2700 });
+    expect(qty(d, panelPost("steel", 2700).sku)).toBe(2);
+    expect(qty(d, panelPost("channel", 2700).sku)).toBe(8);
   });
 });
 
@@ -218,14 +271,27 @@ describe("buildPanelBom options", () => {
     expect(qty(d, SHEET)).toBe(0);
   });
 
-  it("adds a sleeper per panel per row, matching the rail length", () => {
-    const d = design([run(10000)], { sleepers: 2 });
-    expect(qty(d, P.sleeper.sku)).toBe(6);
-    expect(qty(d, P.longSleeper.sku)).toBe(2);
-  });
+  it.each([
+    ["aluminium", 1, 3, 1],
+    ["aluminium", 2, 6, 2],
+    ["dressed-timber", 1, 3, 1],
+    ["dressed-timber", 2, 6, 2],
+    ["undressed-timber", 1, 3, 1],
+    ["undressed-timber", 2, 6, 2],
+  ] as const)(
+    "orders %s sleepers, %d rows: %d standard and %d long",
+    (sleeperType, sleepers, standard, long) => {
+      const d = design([run(10000)], { sleeperType, sleepers });
+      expect(qty(d, panelSleeper(sleeperType, "standard").sku)).toBe(standard);
+      expect(qty(d, panelSleeper(sleeperType, "long").sku)).toBe(long);
+      expect(qty(d, P.screw.sku)).toBe(48);
+      expect(qty(d, P.concretePostMix.sku)).toBe(8);
+    },
+  );
 
   it("has no sleepers by default", () => {
-    expect(qty(design([run(10000)]), P.sleeper.sku)).toBe(0);
+    const lines = buildPanelBom(design([run(10000)])).lines;
+    expect(lines.some((l) => l.sku.includes("SLEEPER"))).toBe(false);
   });
 
   it("swaps the concrete type, or leaves it out", () => {
@@ -267,6 +333,17 @@ describe("bad input", () => {
   it("rejects a height with no sheet", () => {
     expect(() =>
       buildPanelBom(design([run(5000)], { fenceHeightMm: 1650 })),
+    ).toThrow(RangeError);
+  });
+
+  it("rejects a sleeper count without a material, and the reverse", () => {
+    expect(() =>
+      buildPanelBom(design([run(5000)], { sleeperType: "none", sleepers: 1 })),
+    ).toThrow(RangeError);
+    expect(() =>
+      buildPanelBom(
+        design([run(5000)], { sleeperType: "aluminium", sleepers: 0 }),
+      ),
     ).toThrow(RangeError);
   });
 

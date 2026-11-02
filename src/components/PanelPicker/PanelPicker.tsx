@@ -2,10 +2,9 @@ import type { Dispatch } from "react";
 import {
   PANEL_FENCE_HEIGHTS,
   PANEL_POST_LENGTHS,
-  SLEEPER_HEIGHT_MM,
 } from "@/engine/panelCatalogue";
 import { recommendedPostLength } from "@/engine/panelBom";
-import type { PanelDesign, PanelProfile } from "@/engine/types";
+import type { PanelDesign, PanelProfile, SleeperType } from "@/engine/types";
 import type { DesignAction } from "@/lib/designReducer";
 import { OptionGroup, type Option } from "../OptionGroup/OptionGroup";
 import styles from "./PanelPicker.module.scss";
@@ -22,10 +21,16 @@ const HEIGHT_OPTIONS: Option<string>[] = PANEL_FENCE_HEIGHTS.map((mm) => ({
   label: `${mm} mm`,
 }));
 
-const SLEEPER_OPTIONS: Option<string>[] = [
-  { value: "0", label: "None" },
-  { value: "1", label: `1 (${SLEEPER_HEIGHT_MM} mm)` },
-  { value: "2", label: `2 (${2 * SLEEPER_HEIGHT_MM} mm)` },
+const SLEEPER_TYPE_OPTIONS: Option<SleeperType>[] = [
+  { value: "none", label: "None" },
+  { value: "aluminium", label: "Aluminium" },
+  { value: "dressed-timber", label: "Dressed timber" },
+  { value: "undressed-timber", label: "Undressed timber" },
+];
+
+const SLEEPER_QUANTITY_OPTIONS: Option<string>[] = [
+  { value: "1", label: "1 x sleeper" },
+  { value: "2", label: "2 x sleepers" },
 ];
 
 const PROFILE_OPTIONS: Option<PanelProfile>[] = [
@@ -34,15 +39,14 @@ const PROFILE_OPTIONS: Option<PanelProfile>[] = [
 ];
 
 export function PanelPicker({ design, dispatch }: PanelPickerProps) {
-  const aboveGroundMm =
-    design.fenceHeightMm + design.sleepers * SLEEPER_HEIGHT_MM;
   const postOptions: Option<string>[] = [
     {
       value: RECOMMENDED,
       label: `${recommendedPostLength(design)} mm (recommended)`,
     },
     ...PANEL_POST_LENGTHS.filter(
-      (mm) => mm >= aboveGroundMm && mm !== recommendedPostLength(design),
+      (mm) =>
+        mm >= design.fenceHeightMm && mm !== recommendedPostLength(design),
     ).map((mm) => ({ value: String(mm), label: `${mm} mm` })),
   ];
 
@@ -59,18 +63,30 @@ export function PanelPicker({ design, dispatch }: PanelPickerProps) {
         }
       />
       <OptionGroup
-        legend="Sleepers under each panel"
-        name="sleepers"
+        legend="Sleepers"
+        name="sleeper-type"
         columns="half"
-        options={SLEEPER_OPTIONS}
-        value={String(design.sleepers)}
-        onChange={(value) =>
-          dispatch({
-            type: "setSleepers",
-            sleepers: Number(value) as PanelDesign["sleepers"],
-          })
+        options={SLEEPER_TYPE_OPTIONS}
+        value={design.sleeperType}
+        onChange={(sleeperType) =>
+          dispatch({ type: "setSleeperType", sleeperType })
         }
       />
+      {design.sleeperType !== "none" && (
+        <OptionGroup
+          legend="Sleeper quantity, per panel"
+          name="sleepers"
+          columns="half"
+          options={SLEEPER_QUANTITY_OPTIONS}
+          value={String(design.sleepers)}
+          onChange={(value) =>
+            dispatch({
+              type: "setSleepers",
+              sleepers: Number(value) as PanelDesign["sleepers"],
+            })
+          }
+        />
+      )}
       <div>
         <OptionGroup
           legend="Post length"

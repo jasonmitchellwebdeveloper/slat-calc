@@ -1,4 +1,4 @@
-import type { Colour, PanelProfile, Product } from "./types";
+import type { Colour, PanelProfile, Product, SleeperType } from "./types";
 
 // Illustrative specs and prices only. Not any supplier's real catalogue.
 
@@ -13,7 +13,21 @@ export const PANEL_POST_WIDTH_MM = 50;
 export const MIN_PANEL_RUN_MM = 2500;
 export const MAX_PANEL_RUN_MM = 100000;
 export const PANEL_GATE_WIDTH_MM = 930;
-export const SLEEPER_HEIGHT_MM = 150;
+export const SLEEPER_HEIGHT_MM: Record<SleeperType, number> = {
+  none: 0,
+  aluminium: 150,
+  "dressed-timber": 200,
+  "undressed-timber": 200,
+};
+export const SLEEPER_NAMES: Record<Exclude<SleeperType, "none">, string> = {
+  aluminium: "Aluminium sleeper, 50 x 150 mm",
+  "dressed-timber": "Dressed timber sleeper, 45 x 200 mm",
+  "undressed-timber": "Undressed pine sleeper, 50 x 200 mm",
+};
+// Steel end posts run this long once they carry sleepers or a 2100 mm panel.
+export const LONG_STEEL_POST_MM = 3000;
+export const STANDARD_STEEL_POST_MM = 2400;
+export const STANDARD_POST_MM = 2400;
 export const SHEET_CLEARANCE_MM = 10; // a sheet is this much under its height
 export const MIN_PANEL_FENCE_MM = 1200;
 export const MAX_PANEL_FENCE_MM = 2100;
@@ -36,8 +50,6 @@ function product(sku: string, name: string, retailCents: number): Product {
 export const PANEL_PRODUCTS = {
   rail: product("PANEL-RAIL-2400", "Panel rail, 2400 mm", 1490),
   longRail: product("PANEL-RAIL-3180", "Panel rail, 3180 mm", 1990),
-  sleeper: product("SLEEPER-2400", "Aluminium sleeper, 2400 mm", 3250),
-  longSleeper: product("SLEEPER-3180", "Aluminium sleeper, 3180 mm", 4250),
   cap: product("POST-CAP-SHS", "Steel post cap", 190),
   screw: product("TEK-SCREW", "Tek screw", 15),
   concretePostMix: product("CONCRETE-POST", "Concrete post mix, 20 kg", 890),
@@ -108,10 +120,35 @@ export function panelPost(
   return createPost(kind, lengthMm);
 }
 
+const SLEEPER_CENTS_PER_M: Record<Exclude<SleeperType, "none">, number> = {
+  aluminium: 1350,
+  "dressed-timber": 990,
+  "undressed-timber": 690,
+};
+
+export function panelSleeper(
+  type: Exclude<SleeperType, "none">,
+  kind: "standard" | "long",
+): Product {
+  const lengthMm = kind === "standard" ? PANEL_RAIL_MM : LONG_PANEL_RAIL_MM;
+  return product(
+    `SLEEPER-${type.toUpperCase()}-${lengthMm}`,
+    `${SLEEPER_NAMES[type]}, ${lengthMm} mm`,
+    Math.round((SLEEPER_CENTS_PER_M[type] * lengthMm) / 1000 / 10) * 10,
+  );
+}
+
+const PANEL_SLEEPER_PRODUCTS: Product[] = (
+  ["aluminium", "dressed-timber", "undressed-timber"] as const
+).flatMap((type) =>
+  (["standard", "long"] as const).map((kind) => panelSleeper(type, kind)),
+);
+
 export const ALL_PANEL_PRODUCTS: Product[] = [
   ...Object.values(PANEL_PRODUCTS),
   ...PANEL_SHEET_PRODUCTS,
   ...PANEL_POST_PRODUCTS,
+  ...PANEL_SLEEPER_PRODUCTS,
 ];
 
 export const PANEL_COLOURS: Colour[] = [

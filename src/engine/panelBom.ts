@@ -14,12 +14,16 @@ import {
   PANEL_SHEETS,
   panelPost,
   panelSheet,
+  panelSleeper,
   RUN_END_ALLOWANCE_MM,
   SCREWS_PER_GATE,
   SCREWS_PER_PANEL,
   SHEET_CLEARANCE_MM,
   SHEET_COVER_MM,
   SLEEPER_HEIGHT_MM,
+  STANDARD_POST_MM,
+  STANDARD_STEEL_POST_MM,
+  LONG_STEEL_POST_MM,
 } from "./panelCatalogue";
 import { GATE_ALLOWANCE_MM, IN_GROUND_POST_DEPTH_MM } from "./catalogue";
 import type { PanelDesign, Run } from "./types";
@@ -42,6 +46,7 @@ export interface PanelRunLayout {
   fenceHeightMm: number; // above ground, sleepers included
   sheetHeightMm: number;
   sleeperHeightMm: number;
+  sleeperRows: number;
   postLengthMm: number;
   gateOpeningMm?: number;
 }
@@ -70,33 +75,49 @@ function assertValidRun({ lengthMm, gate }: Run): void {
   }
 }
 
-function aboveGroundMm({ fenceHeightMm, sleepers }: PanelDesign): number {
-  return fenceHeightMm + sleepers * SLEEPER_HEIGHT_MM;
+function sleeperHeightMm({ sleeperType, sleepers }: PanelDesign): number {
+  return sleepers * SLEEPER_HEIGHT_MM[sleeperType];
 }
 
-// The shortest stock post that leaves room for the in-ground depth.
+// The stock post for this panel height. Sleepers don't change it.
 export function recommendedPostLength(design: PanelDesign): number {
-  const neededMm =
-    aboveGroundMm(design) +
-    (design.mounting === "in-ground" ? IN_GROUND_POST_DEPTH_MM : 0);
-  const length = PANEL_POST_LENGTHS.find((l) => l >= neededMm);
-  if (length === undefined) {
-    throw new RangeError(`No post is long enough for ${neededMm} mm`);
+  const { fenceHeightMm, mounting } = design;
+  if (mounting === "base-plate") {
+    return PANEL_POST_LENGTHS.find((l) => l >= fenceHeightMm)!;
   }
-  return length;
+  return fenceHeightMm + IN_GROUND_POST_DEPTH_MM <= STANDARD_POST_MM
+    ? STANDARD_POST_MM
+    : fenceHeightMm + IN_GROUND_POST_DEPTH_MM;
 }
 
-// A chosen post can be short, for fixing to a structure, but not under the fence.
+// A chosen post can be short, for fixing to a structure, but not under the panel.
 export function postLengthFor(design: PanelDesign): number {
   const { postLengthMm } = design;
   if (postLengthMm === null) return recommendedPostLength(design);
   const fits =
     PANEL_POST_LENGTHS.includes(postLengthMm) &&
-    postLengthMm >= aboveGroundMm(design);
+    postLengthMm >= design.fenceHeightMm;
   if (!fits) {
     throw new RangeError(`A ${postLengthMm} mm post doesn't suit this fence`);
   }
   return postLengthMm;
+}
+
+// End posts carry the sleepers and the tallest panels, so they run longer.
+function steelPostLengthFor(design: PanelDesign): number {
+  const postLength = postLengthFor(design);
+  if (design.mounting === "base-plate") {
+    const aboveGround = design.fenceHeightMm + sleeperHeightMm(design);
+    return Math.max(
+      postLength,
+      PANEL_POST_LENGTHS.find((l) => l >= aboveGround)!,
+    );
+  }
+  const needsLong = design.sleepers > 0 || design.fenceHeightMm >= 2100;
+  return Math.max(
+    postLength,
+    needsLong ? LONG_STEEL_POST_MM : STANDARD_STEEL_POST_MM,
+  );
 }
 
 function assertValidOptions(design: PanelDesign): void {
@@ -104,6 +125,9 @@ function assertValidOptions(design: PanelDesign): void {
     throw new RangeError(
       `There's no sheet for a ${design.fenceHeightMm} mm fence`,
     );
+  }
+  if ((design.sleeperType === "none") !== (design.sleepers === 0)) {
+    throw new RangeError("Choose a sleeper material and how many rows");
   }
 }
 
@@ -151,7 +175,7 @@ function layoutPanels(lengthMm: number): PanelBay[] {
 export function layoutPanelRuns(design: PanelDesign): PanelRunLayout[] {
   assertValidOptions(design);
   const postLengthMm = postLengthFor(design);
-  const sleeperHeightMm = design.sleepers * SLEEPER_HEIGHT_MM;
+  const sleepersMm = sleeperHeightMm(design);
 
   return design.runs.map((run, index) => {
     assertValidRun(run);
@@ -169,9 +193,10 @@ export function layoutPanelRuns(design: PanelDesign): PanelRunLayout[] {
         1 -
         (sharesCorner ? 1 : 0) +
         (run.gate ? POSTS_PER_GATE : 0),
-      fenceHeightMm: aboveGroundMm(design),
+      fenceHeightMm: design.fenceHeightMm + sleepersMm,
       sheetHeightMm: design.fenceHeightMm - SHEET_CLEARANCE_MM,
-      sleeperHeightMm,
+      sleeperHeightMm: sleepersMm,
+      sleeperRows: design.sleepers,
       postLengthMm,
     };
     if (run.gate) {
@@ -215,11 +240,12 @@ export function buildPanelBom(design: PanelDesign): Bom {
       sku: panelPost("channel", postLength).sku,
       qty: allPanels.length * CHANNELS_PER_PANEL,
     },
-    { sku: panelPost("steel", postLength).sku, qty: steelPosts },
+    {
+      sku: panelPost("steel", steelPostLengthFor(design)).sku,
+      qty: steelPosts,
+    },
     { sku: P.rail.sku, qty: standard * RAILS_PER_PANEL },
     { sku: P.longRail.sku, qty: long * RAILS_PER_PANEL },
-    { sku: P.sleeper.sku, qty: standard * design.sleepers },
-    { sku: P.longSleeper.sku, qty: long * design.sleepers },
     { sku: P.cap.sku, qty: steelPosts + gates * GATE_STILES },
     {
       sku: P.screw.sku,
@@ -230,6 +256,18 @@ export function buildPanelBom(design: PanelDesign): Bom {
     { sku: P.gateStile.sku, qty: gates * GATE_STILES },
     { sku: P.basePlate.sku, qty: inGround ? 0 : holes },
   ];
+  if (design.sleeperType !== "none") {
+    lines.push(
+      {
+        sku: panelSleeper(design.sleeperType, "standard").sku,
+        qty: standard * design.sleepers,
+      },
+      {
+        sku: panelSleeper(design.sleeperType, "long").sku,
+        qty: long * design.sleepers,
+      },
+    );
+  }
   if (inGround && concreteProduct) {
     lines.push({
       sku: concreteProduct.sku,

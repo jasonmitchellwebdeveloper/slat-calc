@@ -22,12 +22,15 @@ export interface SlatDesign {
 }
 
 export type PanelProfile = "sawtooth" | "trimline";
+export type SleeperType =
+  "none" | "aluminium" | "dressed-timber" | "undressed-timber";
 export type ConcreteType = "post-mix" | "rapid-set" | "none";
 
 export interface PanelDesign {
   system: "panel";
   fenceHeightMm: number; // of the panel, not counting sleepers
-  sleepers: 0 | 1 | 2; // rows under each panel
+  sleeperType: SleeperType;
+  sleepers: 0 | 1 | 2; // rows under each panel, 0 only with no sleeper type
   postLengthMm: number | null; // null uses the recommended length
   profile: PanelProfile;
   colour: string; // infill sheets

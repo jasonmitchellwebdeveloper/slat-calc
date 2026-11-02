@@ -167,6 +167,7 @@ describe("buildFenceModel matches the BOM", () => {
 describe("buildFenceModel: steel panels", () => {
   const d: PanelDesign = {
     ...initialPanelDesign,
+    sleeperType: "aluminium",
     sleepers: 1,
     runs: [
       { id: "a", lengthMm: 10000, startsAtCorner: false },

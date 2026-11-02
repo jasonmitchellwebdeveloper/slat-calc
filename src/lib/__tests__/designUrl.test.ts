@@ -130,6 +130,7 @@ describe("steel panel links", () => {
   const panel: PanelDesign = {
     system: "panel",
     fenceHeightMm: 2100,
+    sleeperType: "dressed-timber",
     sleepers: 1,
     postLengthMm: 3000,
     profile: "trimline",
@@ -167,6 +168,8 @@ describe("steel panel links", () => {
     ["a height with no sheet", { fenceHeightMm: 1650 }],
     ["a slat colour", { colour: "woodgrain" }],
     ["too many sleepers", { sleepers: 3 }],
+    ["an unknown sleeper", { sleeperType: "concrete" }],
+    ["a sleeper count with no material", { sleeperType: "none" }],
     ["a post under the fence", { postLengthMm: 1800 }],
     ["an unknown concrete", { concrete: "gravel" }],
     [
@@ -188,6 +191,14 @@ describe("steel panel links", () => {
     ],
   ])("rejects %s", (_, change) => {
     expectRejected(searchFor({ ...panel, ...change }));
+  });
+
+  it("reads an older link's sleepers as aluminium", () => {
+    const old: Partial<PanelDesign> = { ...panel };
+    delete old.sleeperType;
+    const { design, linkInvalid } = readDesignFromSearch(searchFor(old));
+    expect(linkInvalid).toBe(false);
+    expect((design as PanelDesign).sleeperType).toBe("aluminium");
   });
 
   it("rejects an unknown fence type", () => {

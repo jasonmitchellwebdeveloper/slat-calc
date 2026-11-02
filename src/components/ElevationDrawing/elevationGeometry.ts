@@ -230,12 +230,13 @@ function buildPanelElevation(
     for (const y of [fenceTopY, panelBottomY - RAIL_HEIGHT_MM]) {
       rails.push({ x, y, width: clearWidth, height: RAIL_HEIGHT_MM });
     }
-    if (sleeperHeightMm > 0) {
+    const rowHeight = sleeperHeightMm / Math.max(1, layout.sleeperRows);
+    for (let row = 0; row < layout.sleeperRows; row++) {
       sleepers.push({
         x,
-        y: panelBottomY,
+        y: panelBottomY + row * rowHeight,
         width: clearWidth,
-        height: sleeperHeightMm,
+        height: rowHeight,
       });
     }
   });

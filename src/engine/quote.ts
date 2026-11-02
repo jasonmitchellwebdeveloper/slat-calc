@@ -45,6 +45,12 @@ export const QuoteSchema = z.object({
     z.object({
       system: z.literal("panel"),
       fenceHeightMm: z.int(),
+      sleeperType: z.enum([
+        "none",
+        "aluminium",
+        "dressed-timber",
+        "undressed-timber",
+      ]),
       sleepers: z.literal([0, 1, 2]),
       postLengthMm: z.nullable(z.int()),
       profile: z.enum(["sawtooth", "trimline"]),

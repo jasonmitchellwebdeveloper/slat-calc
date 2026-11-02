@@ -10,6 +10,7 @@ interface ElevationDrawingProps {
   index: number;
   colourHex: string;
   frameHex: string;
+  sleeperHex: string;
 }
 
 // Long runs scroll sideways at this scale instead of shrinking to a thin line.
@@ -23,6 +24,7 @@ export function ElevationDrawing({
   index,
   colourHex,
   frameHex,
+  sleeperHex,
 }: ElevationDrawingProps) {
   const drawing = buildElevation(design, layout);
   const { fenceSpan, gate, groundY, fenceTopY } = drawing;
@@ -39,6 +41,7 @@ export function ElevationDrawing({
         {
           "--fence-colour": colourHex,
           "--frame-colour": frameHex,
+          "--sleeper-colour": sleeperHex,
           minWidth: `${Math.round(drawing.width * MIN_PX_PER_MM)}px`,
         } as CSSProperties
       }
@@ -62,7 +65,11 @@ export function ElevationDrawing({
         <rect key={`${rail.x}-${rail.y}`} className={styles.frame} {...rail} />
       ))}
       {drawing.sleepers.map((sleeper) => (
-        <rect key={sleeper.x} className={styles.frame} {...sleeper} />
+        <rect
+          key={`${sleeper.x}-${sleeper.y}`}
+          className={styles.sleeper}
+          {...sleeper}
+        />
       ))}
 
       {gate && (
