@@ -1,0 +1,133 @@
+import { useRef, type Dispatch } from "react";
+import { flushSync } from "react-dom";
+import {
+  MAX_GATE_WIDTH_MM,
+  MAX_RUN_MM,
+  MIN_GATE_WIDTH_MM,
+  MIN_RUN_MM,
+} from "@/engine/catalogue";
+import type { Run } from "@/engine/types";
+import type { DesignAction } from "./designReducer";
+import { NumberField } from "./NumberField";
+import styles from "./RunBuilder.module.scss";
+import { gateWidthError, runLengthError } from "./validation";
+
+interface RunBuilderProps {
+  runs: Run[];
+  dispatch: Dispatch<DesignAction>;
+}
+
+export function RunBuilder({ runs, dispatch }: RunBuilderProps) {
+  const listRef = useRef<HTMLOListElement>(null);
+  const addRef = useRef<HTMLButtonElement>(null);
+
+  // flushSync so the new run exists before focus moves into it.
+  function addRun() {
+    flushSync(() => dispatch({ type: "addRun" }));
+    const input = listRef.current?.querySelector<HTMLInputElement>(
+      "li:last-child input",
+    );
+    input?.focus();
+    input?.select();
+  }
+
+  // The focused button is about to disappear, so give focus a new home.
+  function removeRun(id: string) {
+    flushSync(() => dispatch({ type: "removeRun", id }));
+    addRef.current?.focus();
+  }
+
+  return (
+    <div className={styles.builder}>
+      <ol ref={listRef} className={styles.runs}>
+        {runs.map((run, index) => {
+          const name = `Run ${index + 1}`;
+          const headingId = `${run.id}-heading`;
+          return (
+            <li key={run.id}>
+              <div
+                className={styles.run}
+                role="group"
+                aria-labelledby={headingId}
+              >
+                <div className={styles.runHeader}>
+                  <h3 id={headingId}>{name}</h3>
+                  {runs.length > 1 && (
+                    <button
+                      type="button"
+                      className={styles.remove}
+                      aria-label={`Remove ${name}`}
+                      onClick={() => removeRun(run.id)}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <NumberField
+                  id={`${run.id}-length`}
+                  label="Fence length (mm)"
+                  hint={`${MIN_RUN_MM} to ${MAX_RUN_MM} mm, not including any gate`}
+                  value={run.lengthMm}
+                  validate={runLengthError}
+                  onChange={(mm) =>
+                    dispatch({ type: "setRunLength", id: run.id, mm })
+                  }
+                />
+                {index > 0 && (
+                  <label className={styles.toggle}>
+                    <input
+                      type="checkbox"
+                      checked={run.startsAtCorner}
+                      onChange={(event) =>
+                        dispatch({
+                          type: "setCorner",
+                          id: run.id,
+                          startsAtCorner: event.target.checked,
+                        })
+                      }
+                    />
+                    Starts at a corner
+                  </label>
+                )}
+                <label className={styles.toggle}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(run.gate)}
+                    onChange={(event) =>
+                      dispatch({
+                        type: "setGate",
+                        id: run.id,
+                        hasGate: event.target.checked,
+                      })
+                    }
+                  />
+                  Add gate at the end
+                </label>
+                {run.gate && (
+                  <NumberField
+                    id={`${run.id}-gate`}
+                    label="Gate width (mm)"
+                    hint={`${MIN_GATE_WIDTH_MM} to ${MAX_GATE_WIDTH_MM} mm`}
+                    value={run.gate.widthMm}
+                    validate={gateWidthError}
+                    onChange={(mm) =>
+                      dispatch({ type: "setGateWidth", id: run.id, mm })
+                    }
+                  />
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <button
+        ref={addRef}
+        type="button"
+        className={styles.add}
+        onClick={addRun}
+      >
+        Add run
+      </button>
+    </div>
+  );
+}

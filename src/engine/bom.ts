@@ -5,7 +5,9 @@ import {
   IN_GROUND_POST_DEPTH_MM,
   MAX_BAY_MM,
   MAX_FENCE_HEIGHT_MM,
+  MAX_GATE_WIDTH_MM,
   MAX_RUN_MM,
+  MIN_GATE_WIDTH_MM,
   MIN_RUN_MM,
   POST_PRODUCTS,
   POST_WIDTH_MM,
@@ -52,9 +54,14 @@ function assertValidRun(run: Run): void {
       `Run length must be a whole number from ${MIN_RUN_MM} to ${MAX_RUN_MM} mm, got ${lengthMm}`,
     );
   }
-  if (gate && (!Number.isInteger(gate.widthMm) || gate.widthMm <= 0)) {
+  if (
+    gate &&
+    (!Number.isInteger(gate.widthMm) ||
+      gate.widthMm < MIN_GATE_WIDTH_MM ||
+      gate.widthMm > MAX_GATE_WIDTH_MM)
+  ) {
     throw new RangeError(
-      `Gate width must be a positive whole number of mm, got ${gate.widthMm}`,
+      `Gate width must be a whole number from ${MIN_GATE_WIDTH_MM} to ${MAX_GATE_WIDTH_MM} mm, got ${gate.widthMm}`,
     );
   }
 }

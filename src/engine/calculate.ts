@@ -18,6 +18,13 @@ export type Calculation =
 // The one entry point for the UI. Every number on screen comes from here.
 export function calculate(design: Design, ctx: PriceContext): Calculation {
   const heightOptions = solveHeight(design.targetHeightMm);
+  if (heightOptions.length === 0) {
+    return {
+      ok: false,
+      heightOptions,
+      error: `Target height cannot be built: ${design.targetHeightMm} mm`,
+    };
+  }
   try {
     const layouts = layoutRuns(design);
     const bom = buildBom(design);

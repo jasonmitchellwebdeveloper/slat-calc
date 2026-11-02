@@ -6,6 +6,8 @@
   --colour-border: #d5d8d6;
   --colour-accent: #0b6e4f;
   --colour-on-accent: #ffffff;
+  --colour-accent-tint: #e7f3ee;
+  --colour-error: #b3261e;
   --space-2: 0.5rem;
   --space-4: 1rem;
   --radius: 8px;
@@ -16,6 +18,16 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+// Keeps a focused field clear of the sticky summary bar.
+html {
+  scroll-padding-bottom: 6rem;
+}
+
+button,
+input {
+  font: inherit;
 }
 
 body {

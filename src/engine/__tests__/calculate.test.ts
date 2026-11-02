@@ -47,4 +47,17 @@ describe("calculate", () => {
     expect(result.error).toMatch(/Run length/);
     expect(result.heightOptions).toHaveLength(3);
   });
+
+  it("reports a target height that cannot be built", () => {
+    for (const targetHeightMm of [Number.NaN, 114, 5000]) {
+      const result = calculate(
+        { ...design, targetHeightMm },
+        { tier: "retail" },
+      );
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error).toMatch(/Target height/);
+      expect(result.heightOptions).toEqual([]);
+    }
+  });
 });

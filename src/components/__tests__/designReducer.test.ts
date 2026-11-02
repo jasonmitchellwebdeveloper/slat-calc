@@ -1,0 +1,155 @@
+import { describe, expect, it } from "vitest";
+import { designReducer, initialDesign } from "../designReducer";
+import type { Design } from "@/engine/types";
+
+const twoRuns: Design = {
+  ...initialDesign,
+  runs: [
+    { id: "run-1", lengthMm: 6000, startsAtCorner: false },
+    { id: "run-2", lengthMm: 3000, startsAtCorner: true },
+  ],
+};
+
+describe("designReducer: height", () => {
+  it("selects the closest build when the current one is no longer offered", () => {
+    const next = designReducer(initialDesign, {
+      type: "setTargetHeight",
+      mm: 1200,
+    });
+    expect(next.targetHeightMm).toBe(1200);
+    // Fence heights either side of 1200 mm, with 50 mm clearance included:
+    // 5 mm gap: 16 slats 1165, 17 slats 1235. Both 35 away.
+    // 9 mm gap: 15 slats 1151, 16 slats 1225. Closest is 25 away.
+    // 20 mm gap: 13 slats 1135, 14 slats 1220. Closest is 20 away.
+    expect(next.gapMm).toBe(20);
+    expect(next.slatCount).toBe(14);
+  });
+
+  it("keeps a chosen build while it is still offered", () => {
+    const chosen = designReducer(initialDesign, {
+      type: "selectHeight",
+      gapMm: 9,
+      slatCount: 24,
+    });
+    const next = designReducer(chosen, { type: "setTargetHeight", mm: 1790 });
+    expect(next.gapMm).toBe(9);
+    expect(next.slatCount).toBe(24);
+  });
+
+  it("keeps the last build while the target cannot be built", () => {
+    for (const mm of [Number.NaN, 18, 5000]) {
+      const next = designReducer(initialDesign, {
+        type: "setTargetHeight",
+        mm,
+      });
+      expect(next.targetHeightMm).toBe(mm);
+      expect(next.slatCount).toBe(initialDesign.slatCount);
+      expect(next.gapMm).toBe(initialDesign.gapMm);
+    }
+  });
+});
+
+describe("designReducer: colour and mounting", () => {
+  it("sets the colour", () => {
+    const next = designReducer(initialDesign, {
+      type: "setColour",
+      colour: "woodgrain",
+    });
+    expect(next.colour).toBe("woodgrain");
+  });
+
+  it("sets the mounting", () => {
+    const next = designReducer(initialDesign, {
+      type: "setMounting",
+      mounting: "base-plate",
+    });
+    expect(next.mounting).toBe("base-plate");
+  });
+});
+
+describe("designReducer: runs", () => {
+  it("adds a run with a valid length and no corner or gate", () => {
+    const next = designReducer(initialDesign, { type: "addRun" });
+    expect(next.runs).toHaveLength(2);
+    expect(next.runs[1]).toEqual({
+      id: "run-2",
+      lengthMm: 3000,
+      startsAtCorner: false,
+    });
+  });
+
+  it("never reuses the id of a run still in the design", () => {
+    const removed = designReducer(twoRuns, { type: "removeRun", id: "run-1" });
+    const next = designReducer(removed, { type: "addRun" });
+    const ids = next.runs.map((r) => r.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("removes a run", () => {
+    const next = designReducer(twoRuns, { type: "removeRun", id: "run-2" });
+    expect(next.runs.map((r) => r.id)).toEqual(["run-1"]);
+  });
+
+  it("keeps at least one run", () => {
+    const next = designReducer(initialDesign, {
+      type: "removeRun",
+      id: "run-1",
+    });
+    expect(next.runs).toHaveLength(1);
+  });
+
+  it("clears the corner flag on a run that becomes the first", () => {
+    const next = designReducer(twoRuns, { type: "removeRun", id: "run-1" });
+    expect(next.runs[0].id).toBe("run-2");
+    expect(next.runs[0].startsAtCorner).toBe(false);
+  });
+
+  it("changes only the targeted run", () => {
+    const next = designReducer(twoRuns, {
+      type: "setRunLength",
+      id: "run-2",
+      mm: 4500,
+    });
+    expect(next.runs[0].lengthMm).toBe(6000);
+    expect(next.runs[1].lengthMm).toBe(4500);
+  });
+
+  it("toggles the corner flag", () => {
+    const next = designReducer(twoRuns, {
+      type: "setCorner",
+      id: "run-2",
+      startsAtCorner: false,
+    });
+    expect(next.runs[1].startsAtCorner).toBe(false);
+  });
+
+  it("adds a gate at the default width, then removes it", () => {
+    const gated = designReducer(twoRuns, {
+      type: "setGate",
+      id: "run-2",
+      hasGate: true,
+    });
+    expect(gated.runs[1].gate).toEqual({ widthMm: 900 });
+
+    const ungated = designReducer(gated, {
+      type: "setGate",
+      id: "run-2",
+      hasGate: false,
+    });
+    expect(ungated.runs[1].gate).toBeUndefined();
+  });
+
+  it("sets the gate width", () => {
+    const gated = designReducer(twoRuns, {
+      type: "setGate",
+      id: "run-2",
+      hasGate: true,
+    });
+    const next = designReducer(gated, {
+      type: "setGateWidth",
+      id: "run-2",
+      mm: 1000,
+    });
+    expect(next.runs[1].gate).toEqual({ widthMm: 1000 });
+  });
+});

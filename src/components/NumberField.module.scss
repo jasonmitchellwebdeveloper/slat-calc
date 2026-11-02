@@ -1,0 +1,41 @@
+@use "../styles/mixins" as *;
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.label {
+  font-weight: 600;
+}
+
+// 16px stops iOS zooming the page when the field takes focus.
+.input {
+  @include tap-target;
+  width: 100%;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--colour-muted);
+  border-radius: var(--radius);
+  background: var(--colour-surface);
+  color: var(--colour-ink);
+  font-size: 1rem;
+
+  &[aria-invalid] {
+    border: 2px solid var(--colour-error);
+  }
+}
+
+.hint,
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.hint {
+  color: var(--colour-muted);
+}
+
+.error {
+  color: var(--colour-error);
+  font-weight: 600;
+}

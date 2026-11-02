@@ -15,7 +15,7 @@ export interface HeightOption {
 }
 
 const MAX_OPTIONS = 3;
-const MIN_FENCE_HEIGHT_MM = SLAT_FACE_MM + GROUND_CLEARANCE_MM;
+export const MIN_FENCE_HEIGHT_MM = SLAT_FACE_MM + GROUND_CLEARANCE_MM;
 
 export function panelHeightFor(gapMm: GapMm, slatCount: number): number {
   return SLAT_FACE_MM * slatCount + gapMm * (slatCount - 1);

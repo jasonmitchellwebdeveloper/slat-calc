@@ -1,0 +1,13 @@
+.picker {
+  display: grid;
+  gap: var(--space-4);
+}
+
+// One legend line plus three 44px options and their gaps.
+.options {
+  min-height: calc(1.75rem + 3 * 44px + 2 * var(--space-2));
+}
+
+.empty {
+  color: var(--colour-muted);
+}

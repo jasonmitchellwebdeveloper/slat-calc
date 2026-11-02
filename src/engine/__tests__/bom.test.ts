@@ -202,8 +202,8 @@ describe("buildBom", () => {
       );
     });
 
-    it("rejects a gate without a positive whole width", () => {
-      for (const widthMm of [0, -900, 900.5]) {
+    it("rejects a gate width that is not a whole number in range", () => {
+      for (const widthMm of [0, -900, 900.5, 599, 1201]) {
         expect(() =>
           buildBom(design([run(6000, { gate: { widthMm } })])),
         ).toThrow(RangeError);
