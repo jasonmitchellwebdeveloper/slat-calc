@@ -6,6 +6,10 @@
   background: var(--colour-surface);
   border-top: 1px solid var(--colour-border);
   padding-bottom: env(safe-area-inset-bottom);
+
+  @media print {
+    display: none;
+  }
 }
 
 .inner {

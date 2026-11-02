@@ -15,12 +15,14 @@ import { designReducer } from "@/lib/designReducer";
 import { designSearch, readDesignFromSearch } from "@/lib/designUrl";
 import type { Unit } from "@/lib/validation";
 import { BomTable } from "../BomTable/BomTable";
+import { Button } from "../Button/Button";
 import { CopyLinkButton } from "../CopyLinkButton/CopyLinkButton";
 import { CutList } from "../CutList/CutList";
 import { Elevation } from "../Elevation/Elevation";
 import { HeightPicker } from "../HeightPicker/HeightPicker";
 import { OptionGroup, type Option } from "../OptionGroup/OptionGroup";
 import { PriceSummary } from "../PriceSummary/PriceSummary";
+import { PrintPlan } from "../PrintPlan/PrintPlan";
 import { QuoteRequest } from "../QuoteRequest/QuoteRequest";
 import { RunBuilder } from "../RunBuilder/RunBuilder";
 import { SummaryBar } from "../SummaryBar/SummaryBar";
@@ -46,6 +48,12 @@ const UNIT_OPTIONS: Option<Unit>[] = [
   { value: "mm", label: "Millimetres" },
   { value: "m", label: "Metres" },
 ];
+
+const PRICE_LIST_NAMES: Record<PriceList, string> = {
+  retail: "Retail",
+  trade: "Trade",
+  account: `Account ${DEMO_ACCOUNT_CODE}`,
+};
 
 const COLOUR_OPTIONS: Option<string>[] = COLOURS.map((colour) => ({
   value: colour.id,
@@ -130,7 +138,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
         )}
         {shown.ok && (
           <section
-            className={`${styles.card} ${styles.preview}`}
+            className={`${styles.card} ${styles.preview} ${styles.screenOnly}`}
             aria-labelledby="step-preview"
           >
             <h2 id="step-preview">Preview</h2>
@@ -144,7 +152,7 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
             />
           </section>
         )}
-        <div className={`${styles.column} ${styles.form}`}>
+        <div className={`${styles.column} ${styles.form} ${styles.screenOnly}`}>
           <div className={styles.card}>
             <OptionGroup
               legend="Enter measurements in"
@@ -198,6 +206,14 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
             />
           </section>
         </div>
+        {shown.ok && (
+          <PrintPlan
+            design={lastValidDesign}
+            layouts={shown.layouts}
+            colour={colour}
+            priceListName={PRICE_LIST_NAMES[priceList]}
+          />
+        )}
         <div className={`${styles.column} ${styles.output}`}>
           <section
             id="results"
@@ -206,14 +222,16 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
           >
             <h2 id="step-results">Results</h2>
             <div className={styles.results}>
-              <OptionGroup
-                legend="Price list"
-                name="price-list"
-                options={PRICE_LIST_OPTIONS}
-                value={priceList}
-                onChange={setPriceList}
-              />
-              <div className={styles.actions}>
+              <div className={styles.screenOnly}>
+                <OptionGroup
+                  legend="Price list"
+                  name="price-list"
+                  options={PRICE_LIST_OPTIONS}
+                  value={priceList}
+                  onChange={setPriceList}
+                />
+              </div>
+              <div className={`${styles.actions} ${styles.screenOnly}`}>
                 <QuoteRequest
                   design={lastValidDesign}
                   pricing={pricing}
@@ -223,6 +241,9 @@ function CalculatorForm({ startDesign, linkInvalid }: CalculatorFormProps) {
                   design={lastValidDesign}
                   disabled={!result.ok}
                 />
+                <Button disabled={!result.ok} onClick={() => window.print()}>
+                  Print plan
+                </Button>
               </div>
               {!result.ok && (
                 <p className={styles.notice}>

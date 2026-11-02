@@ -1,5 +1,3 @@
-@use "../../styles/mixins" as *;
-
 .elevation {
   display: grid;
   gap: var(--space-2);
@@ -14,73 +12,6 @@
 
 .staleScroller {
   opacity: 0.45;
-}
-
-// Stops a short run filling the screen on a wide column.
-.svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 22rem;
-}
-
-// Mid-tone so both Satin Black and Pearl White stand out against it.
-.sky {
-  fill: var(--colour-preview-backdrop);
-}
-
-.fence {
-  fill: var(--fence-colour);
-}
-
-// The outline keeps pale finishes visible against the white card.
-.post {
-  fill: var(--fence-colour);
-  stroke: var(--colour-muted);
-  stroke-width: 1px;
-  vector-effect: non-scaling-stroke;
-}
-
-.gateLeaf {
-  fill: var(--fence-colour);
-  fill-opacity: 0.3;
-  stroke: var(--fence-colour);
-  stroke-width: 40;
-}
-
-.hinge {
-  fill: var(--colour-ink);
-}
-
-.sharedPost {
-  fill: var(--colour-surface);
-  stroke: var(--fence-colour);
-  stroke-width: 12;
-}
-
-.ground {
-  stroke: var(--colour-ink);
-  stroke-width: 20;
-}
-
-.dimension {
-  stroke: var(--colour-muted);
-  stroke-width: 14;
-}
-
-// User units are mm, so these sizes scale with the drawing.
-.label {
-  fill: var(--colour-ink);
-  font-size: 260px;
-
-  @include md {
-    font-size: 200px;
-  }
-}
-
-.narrowLabel {
-  fill: var(--colour-ink);
-  font-size: 200px;
 }
 
 .note {
